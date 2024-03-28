@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sstream>
+#include <future>
 
 class Server
 {
@@ -22,6 +23,7 @@ class Server
 
         int listen_to_socket();
         int accept_connection();
+        void handle_request(int client_socket);
         void readRequest();
         void sendResponse();
         
@@ -31,7 +33,6 @@ class Server
     private:
         std::string ip;
         int socket_fd;
-        int new_socket;
         int port;
         int max_connections;
         struct sockaddr_in sock_addr;
