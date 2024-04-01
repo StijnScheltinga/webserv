@@ -1,4 +1,5 @@
 #include "../inc/Server.hpp"
+#include "../inc/Request.hpp"
 
 int Server::listen_to_socket()
 {
@@ -14,14 +15,18 @@ int Server::listen_to_socket()
 
 void Server::handle_request(int client_socket)
 {
-    char buffer[7000] = {0};
-    int valread = read(client_socket, buffer, 7000);
-    if (valread == -1)
-        exit_error("Failed to read from socket");
-    std::cout << buffer << std::endl;
-    std::string response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\ngooffy gooffy\n";
-    write (client_socket, response.c_str(), response.length());
+    char buffer[1024] = {0};
+    // In the future we will need to handle the case where the request is larger than 1024 bytes.
+    int valread = read(client_socket, buffer, 1024);
+    if (valread > 0)
+    {
+        buffer[valread] = '\0';
+        Request request(client_socket, buffer);
+        request.ParseRequest();
+        request.HandleRequest();
+    }
     close(client_socket);
+        
 }
 int Server::accept_connection()
 {
