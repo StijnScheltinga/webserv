@@ -20,9 +20,7 @@ class Request
 		std::string Handle_POST(std::string body);
 		std::string Handle_DELETE();
 		void	printMap();
-		int	getClientSocket() const;
-		std::map<std::string, std::string>	getRequestMap() const;
-
+		
 	private:
 		const char *_buffer;
 		int _client_socket;

@@ -1,20 +1,20 @@
 #include "../inc/Response.hpp"
 
-Response::Response(const Request& request)
-{
-	this->clientSocket = request.getClientSocket();
-	this->requestMap = request.getRequestMap();
-
-}
-
+Response::Response() {}
 Response::~Response() {}
 
-void	Response::printMap(void)
+std::string	Response::getPage(std::string fileName)
 {
-	std::map<std::string, std::string>::iterator	it = requestMap.begin();
-
-	std::cout << "---request---\n";
-	for (;it != requestMap.end(); it++)
-		std::cout << "key: " << it->first << ", value: " << it->second << "\n";
-	std::cout << "---end request---" << std::endl;
+	std::string	path = "../webSrc" + fileName + ".html";
+	std::cout << "! " << path << std::endl;
+	std::ifstream	file(path);
+	if (!file.good())
+	{
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::cout << buffer.str() << std::endl;
+		return buffer.str();
+	}
+	else
+		throw std::exception();
 }

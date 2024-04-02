@@ -3,18 +3,17 @@
 
 #include "../inc/Request.hpp"
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <exception>
 
 class Response
 {
-	private:
-		int	clientSocket;
-		std::map<std::string, std::string>	requestMap;
 	public:
-		Response(const Request& request);
+		Response();
 		~Response();
-		void	printMap();
+		std::string getPage(std::string fileName);
 };
 
 #endif
