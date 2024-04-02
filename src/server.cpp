@@ -8,6 +8,7 @@ int Server::listen_to_socket()
     if (bind(socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) == -1)
     {
         close(socket_fd);
+		std::cout << strerror(errno) << std::endl;
         return (exit_error("Failed to bind socket"));
     }
     if (listen(socket_fd, max_connections) == -1)
@@ -34,9 +35,7 @@ void Server::handle_request(int client_socket)
         Request request(client_socket, buffer);
         request.ParseRequest();
         request.HandleRequest();
-    }
-    close(client_socket);
-        
+    }   
 }
 int Server::accept_connection()
 {

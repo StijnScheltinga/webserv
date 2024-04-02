@@ -1,4 +1,5 @@
 #include "../inc/Request.hpp"
+#include "../inc/Response.hpp"
 #include <iostream>
 #include <unistd.h>
 
@@ -53,6 +54,7 @@ std::string Request::Handle_DELETE()
 }
 void Request::HandleRequest()
 {
+	printMap();
 	if (request_map["Method"] == "GET")
 	{
 		std::string response = Handle_GET();
@@ -74,4 +76,24 @@ void Request::HandleRequest()
 	{
 		write(_client_socket, BAD_REQUEST.c_str(), BAD_REQUEST.size());
 	}
+}
+
+void	Request::printMap(void)
+{
+	std::map<std::string, std::string>::iterator	it = request_map.begin();
+
+	std::cout << "---request---\n";
+	for (;it != request_map.end(); it++)
+		std::cout << "key: " << it->first << ", value: " << it->second << "\n";
+	std::cout << "---end request---" << std::endl;
+}
+
+int	Request::getClientSocket() const
+{
+	return _client_socket;
+}
+
+std::map<std::string, std::string>	Request::getRequestMap() const
+{
+	return request_map;
 }
