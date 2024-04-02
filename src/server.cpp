@@ -1,12 +1,20 @@
 #include "../inc/Server.hpp"
 #include "../inc/Request.hpp"
+#include <poll.h>
+#include <vector>
 
 int Server::listen_to_socket()
 {
     if (bind(socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) == -1)
+    {
+        close(socket_fd);
         return (exit_error("Failed to bind socket"));
+    }
     if (listen(socket_fd, max_connections) == -1)
+    {
+        close(socket_fd);
         return (exit_error("Failed to listen to socket"));
+    }
     std::ostringstream ss;
     ss << "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
     log(ss.str());
@@ -16,7 +24,9 @@ int Server::listen_to_socket()
 void Server::handle_request(int client_socket)
 {
     char buffer[1024] = {0};
-    // In the future we will need to handle the case where the request is larger than 1024 bytes.
+    
+    // In the future we will need to handle the case where the request is larger than 1024 bytes.\
+    // maybe append to buffer until read returns 0.
     int valread = read(client_socket, buffer, 1024);
     if (valread > 0)
     {
@@ -30,6 +40,11 @@ void Server::handle_request(int client_socket)
 }
 int Server::accept_connection()
 {
+    // We will use poll for concurrent i/o.
+    // std::vector<pollfd> fds(max_connections + 1);
+    // fds[0].fd = socket_fd;
+    // fds[0].events = POLLIN;
+
     while (true)
     {
         sockaddr_in client_addr;
@@ -37,10 +52,11 @@ int Server::accept_connection()
         int client_socket = accept(socket_fd, (struct sockaddr *)&client_addr, &client_addr_len);
         if (client_socket < 0)
         {
+            close(socket_fd);
             return (exit_error("Failed to accept connection"));
-            continue ;
         }
         handle_request(client_socket);
+        close (client_socket);
     }
     return 0;
 }

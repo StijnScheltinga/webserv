@@ -37,11 +37,41 @@ void Request::ParseRequest()
 	}
 }
 
+std::string Request::Handle_GET()
+{
+	return "Hello World!";
+}
+
+std::string Request::Handle_POST(std::string body)
+{
+	return body;
+}
+
+std::string Request::Handle_DELETE()
+{
+	return "";
+}
 void Request::HandleRequest()
 {
-	std::ostringstream ss;
-	ss << "Received request: " << request_map["Method"] << " " << request_map["Path"] << " " << _http_version;
-	std::cout << ss.str() << std::endl;
-	std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 12\r\n\r\nHello world!";
-	write(_client_socket, response.c_str(), response.size());
+	if (request_map["Method"] == "GET")
+	{
+		std::string response = Handle_GET();
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		write(_client_socket, response_header.c_str(), response_header.size());
+	}
+	else if (request_map["Method"] == "POST")
+	{
+		std::string response = Handle_POST(request_map["Body"]);
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		write(_client_socket, response_header.c_str(), response_header.size());
+
+	}
+	else if (request_map["Method"] == "DELETE")
+	{
+		
+	}
+	else
+	{
+		write(_client_socket, BAD_REQUEST.c_str(), BAD_REQUEST.size());
+	}
 }
