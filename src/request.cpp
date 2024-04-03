@@ -64,7 +64,6 @@ void Request::HandleRequest()
 		std::string response = Handle_POST(request_map["Body"]);
 		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		write(_client_socket, response_header.c_str(), response_header.size());
-
 	}
 	else if (request_map["Method"] == "DELETE")
 	{
