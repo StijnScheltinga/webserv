@@ -5,10 +5,10 @@ Response::~Response() {}
 
 std::string	Response::getPage(std::string fileName)
 {
-	std::string	path = "../webSrc" + fileName + ".html";
+	std::string	path = "webSrc" + fileName + ".html";
 	std::cout << "! " << path << std::endl;
 	std::ifstream	file(path);
-	if (!file.good())
+	if (file.good())
 	{
 		std::stringstream buffer;
 		buffer << file.rdbuf();
