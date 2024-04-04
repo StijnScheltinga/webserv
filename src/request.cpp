@@ -15,6 +15,7 @@ Request::~Request()
 
 void Request::ParseRequest()
 {
+	printRequest();
 	//First line always has the method, path and version.
 	std::istringstream ss(_buffer);
 	std::string method, path, version;
@@ -55,7 +56,7 @@ std::string Request::Handle_DELETE()
 }
 void Request::HandleRequest()
 {
-	printMap();
+	// printMap();
 	try
 	{
 		if (request_map["Method"] == "GET")
@@ -69,7 +70,7 @@ void Request::HandleRequest()
 			std::string response = Handle_POST(request_map["Body"]);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			write(_client_socket, response_header.c_str(), response_header.size());
-
+			std::cout << "post method" << std::endl;
 		}
 		else if (request_map["Method"] == "DELETE")
 		{
@@ -91,4 +92,9 @@ void	Request::printMap(void)
 	for (;it != request_map.end(); it++)
 		std::cout << "key: " << it->first << ", value: " << it->second << "\n";
 	std::cout << "---end request---" << std::endl;
+}
+
+void	Request::printRequest(void)
+{
+	std::cout << _buffer << std::endl;
 }

@@ -20,6 +20,7 @@ class Request
 		std::string Handle_POST(std::string body);
 		std::string Handle_DELETE();
 		void	printMap();
+		void	printRequest();
 		
 	private:
 		const char *_buffer;

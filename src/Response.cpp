@@ -13,7 +13,7 @@ std::string	Response::getPage(std::string fileName)
 	{
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		std::cout << buffer.str() << std::endl;
+		// std::cout << buffer.str() << std::endl;
 		file.close();
 		return buffer.str();
 	}
