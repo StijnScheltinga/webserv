@@ -53,6 +53,7 @@ std::string Request::Handle_DELETE()
 }
 void Request::HandleRequest()
 {
+	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
 	if (request_map["Method"] == "GET")
 	{
 		std::string response = Handle_GET();

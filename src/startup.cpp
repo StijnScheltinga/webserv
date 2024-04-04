@@ -2,7 +2,7 @@
 
 void Server::init_server()
 {
-    port = 8080;
+    port = 8000;
     max_connections = 3;
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_port = htons(port);
