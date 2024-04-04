@@ -7,7 +7,7 @@ Response::~Response() {}
 std::string	Response::getPage(std::string fileName)
 {
 	std::string	path = "webSrc" + fileName + ".html";
-	std::cout << "! " << path << std::endl;
+	std::cout << "Path getPage: " << path << std::endl;
 	std::ifstream	file(path);
 	if (file.is_open() && file.good())
 	{
