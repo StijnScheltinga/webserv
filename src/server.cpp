@@ -5,12 +5,12 @@
 
 int Server::listen_to_socket()
 {
-    if (bind(socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) == -1)
+    if (bind(socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
         close(socket_fd);
         return (exit_error("Failed to bind socket"));
     }
-    if (listen(socket_fd, max_connections) == -1)
+    if (listen(socket_fd, max_connections) < 0)
     {
         close(socket_fd);
         return (exit_error("Failed to listen to socket"));
@@ -34,29 +34,63 @@ void Server::handle_request(int client_socket)
         Request request(client_socket, buffer);
         request.ParseRequest();
         request.HandleRequest();
-    }
-    close(client_socket);
-        
+    }   
 }
+int Server::set_fds(fd_set *readfds, std::vector<int> client_sockets)
+{
+    int sd, max_sd;
+    for (int i = 0; i < max_connections; i++)
+    {
+        sd = client_sockets[i];
+        if (sd > 0)
+            FD_SET(sd, readfds);
+        if (sd > max_sd)
+            max_sd = sd;
+    }
+    return max_sd;
+}
+
+void Server::add_socket_to_vec(int client_socket, std::vector<int> &client_sockets)
+{
+    for (int i = 0; i < max_connections; i++)
+    {
+        if (client_sockets[i] == 0)
+        {
+            client_sockets[i] = client_socket;
+            return ;
+        }
+    }
+}
+
 int Server::accept_connection()
 {
-    // We will use poll for concurrent i/o.
-    // std::vector<pollfd> fds(max_connections + 1);
-    // fds[0].fd = socket_fd;
-    // fds[0].events = POLLIN;
-
+    fd_set readfds;
+    int max_sd, client_socket;
+    sockaddr_in client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
+    std::vector<int> client_sockets(max_connections, 0);
     while (true)
     {
-        sockaddr_in client_addr;
-        socklen_t client_addr_len = sizeof(client_addr);
-        int client_socket = accept(socket_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-        if (client_socket < 0)
+        FD_ZERO(&readfds);
+        FD_SET(socket_fd, &readfds);
+        max_sd = set_fds(&readfds, client_sockets);
+        if (select(max_sd + 1, &readfds, NULL, NULL, NULL) < 0)
+            return (exit_error("Select failed"));
+        if (FD_ISSET(socket_fd, &readfds))
         {
-            close(socket_fd);
-            return (exit_error("Failed to accept connection"));
+            client_socket = accept(socket_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+            if (client_socket < 0)
+            {
+                close(socket_fd);
+                return (exit_error("Failed to accept connection"));
+            }
+            add_socket_to_vec(client_socket, client_sockets);
         }
-        handle_request(client_socket);
-        close (client_socket);
+        for (int i = 0; i < max_connections; i++)
+        {
+            if (FD_ISSET(client_sockets[i], &readfds))
+                handle_request(client_sockets[i]);
+        }
     }
     return 0;
 }
