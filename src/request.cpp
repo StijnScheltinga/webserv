@@ -1,4 +1,5 @@
 #include "../inc/Request.hpp"
+#include "../inc/Response.hpp"
 #include <iostream>
 #include <unistd.h>
 
@@ -14,6 +15,7 @@ Request::~Request()
 
 void Request::ParseRequest()
 {
+	printRequest();
 	//First line always has the method, path and version.
 	std::istringstream ss(_buffer);
 	std::string method, path, version;
@@ -39,7 +41,8 @@ void Request::ParseRequest()
 
 std::string Request::Handle_GET()
 {
-	return "Hello World!";
+	Response	response;
+	return response.getPage(request_map["Path"]);
 }
 
 std::string Request::Handle_POST(std::string body)
@@ -68,10 +71,26 @@ void Request::HandleRequest()
 	}
 	else if (request_map["Method"] == "DELETE")
 	{
-		
+
 	}
-	else
+	catch (const std::exception& e)
 	{
+		std::cout << "improper request" << std::endl;
 		write(_client_socket, BAD_REQUEST.c_str(), BAD_REQUEST.size());
 	}
+}
+
+void	Request::printMap(void)
+{
+	std::map<std::string, std::string>::iterator	it = request_map.begin();
+
+	std::cout << "---request---\n";
+	for (;it != request_map.end(); it++)
+		std::cout << "key: " << it->first << ", value: " << it->second << "\n";
+	std::cout << "---end request---" << std::endl;
+}
+
+void	Request::printRequest(void)
+{
+	std::cout << _buffer << std::endl;
 }
