@@ -38,7 +38,8 @@ void Server::handle_request(int client_socket)
 }
 int Server::set_fds(fd_set *readfds, std::vector<int> client_sockets)
 {
-    int sd, max_sd;
+    int sd = 0;
+    int max_sd = socket_fd;
     for (int i = 0; i < max_connections; i++)
     {
         sd = client_sockets[i];
@@ -65,7 +66,8 @@ void Server::add_socket_to_vec(int client_socket, std::vector<int> &client_socke
 int Server::accept_connection()
 {
     fd_set readfds;
-    int max_sd, client_socket;
+    int max_sd;
+    int client_socket;
     sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
     std::vector<int> client_sockets(max_connections, 0);

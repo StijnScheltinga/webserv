@@ -2,6 +2,7 @@
 #include "../inc/Response.hpp"
 #include <iostream>
 #include <unistd.h>
+#include <fcntl.h>
 
 Request::Request(int client_socket, const char *buffer)
 {
