@@ -56,26 +56,22 @@ std::string Request::Handle_DELETE()
 }
 void Request::HandleRequest()
 {
-	// printMap();
-	try
+	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
+	if (request_map["Method"] == "GET")
 	{
-		if (request_map["Method"] == "GET")
-		{
-			std::string response = Handle_GET();
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			write(_client_socket, response_header.c_str(), response_header.size());
-		}
-		else if (request_map["Method"] == "POST")
-		{
-			std::string response = Handle_POST(request_map["Body"]);
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			write(_client_socket, response_header.c_str(), response_header.size());
-			std::cout << "post method" << std::endl;
-		}
-		else if (request_map["Method"] == "DELETE")
-		{
-			
-		}
+		std::string response = Handle_GET();
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		write(_client_socket, response_header.c_str(), response_header.size());
+	}
+	else if (request_map["Method"] == "POST")
+	{
+		std::string response = Handle_POST(request_map["Body"]);
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		write(_client_socket, response_header.c_str(), response_header.size());
+	}
+	else if (request_map["Method"] == "DELETE")
+	{
+
 	}
 	catch (const std::exception& e)
 	{

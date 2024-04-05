@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sstream>
+#include <vector>
 #include <future>
 
 class Server
@@ -29,6 +30,9 @@ class Server
         
         void log(const std::string &message);
         int exit_error(const std::string &message);
+
+        int set_fds(fd_set *set, std::vector<int> client_sockets);
+        void    add_socket_to_vec(int client_socket, std::vector<int> &client_sockets);
 
     private:
         std::string ip;
