@@ -27,7 +27,7 @@ class Server
 
         int listen_to_socket();
         void accept_connection();
-		void handle_new_connection(int );
+		void handle_new_connection(int epoll_fd);
         void handle_request(int client_socket);
         void readRequest();
         void sendResponse();

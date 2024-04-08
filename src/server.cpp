@@ -28,6 +28,7 @@ void Server::handle_request(int client_socket)
     // In the future we will need to handle the case where the request is larger than 1024 bytes.\
     // maybe append to buffer until read returns 0.
     int valread = read(client_socket, buffer, 1024);
+	std::cout << valread << std::endl;
     if (valread > 0)
     {
         buffer[valread] = '\0';
@@ -46,7 +47,11 @@ void	Server::handle_new_connection(int epoll_fd)
 	if (client_fd == -1)
 		exit_error("accept");
 	//add it to eppol to check for read/write operations down the line
-	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, );
+	struct epoll_event	event;
+	event.events = EPOLLIN;
+	event.data.fd = client_fd;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event) == -1)
+		exit_error("epoll_ctl");
 }
 
 void	Server::accept_connection()
@@ -54,10 +59,11 @@ void	Server::accept_connection()
 	int	epoll_fd = epoll_create1(0);
 	if (epoll_fd == -1)
 		exit_error("failed to create epoll");
-	struct epoll_event	event;
-	event.events = EPOLLIN;
-	event.data.fd = server_socket_fd;
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event) == -1)
+
+	struct epoll_event	event_server;
+	event_server.events = EPOLLIN;
+	event_server.data.fd = server_socket_fd;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
 		exit_error("eppol_ctl");
 	while (true)
 	{
@@ -70,12 +76,13 @@ void	Server::accept_connection()
 			if (events[i].data.fd == server_socket_fd)
 			{
 				//handle new connection
-				handle_new_connection();
+				handle_new_connection(epoll_fd);
 			}
 			else
 			{
 				//handle request
-
+				std::cout << "handle request" << std::endl;
+				handle_request(events[i].data.fd);
 			}
 		}
 	}
