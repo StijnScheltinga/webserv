@@ -95,9 +95,9 @@ int Server::accept_connection()
     return 0;
 }
 
-Server::Server()
+Server::Server(char *config_file)
 {
-    if (StartServer())
+    if (StartServer(config_file))
         exit_error("Failed to start server");
     std::cout << "Server started" << std::endl;
 }

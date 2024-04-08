@@ -12,15 +12,19 @@
 #include <sstream>
 #include <vector>
 #include <future>
+#include <fstream>
+#include <map>
 
 class Server
 {
     public:
         Server();
+        Server(char *config);
         ~Server();
 
-        void init_server();
-        int StartServer();
+        void init_server(char *config_file);
+        std::map<std::string, std::string> parse_config(char *filename);
+        int StartServer(char *config_file);
 
         int listen_to_socket();
         int accept_connection();
@@ -39,6 +43,8 @@ class Server
         int socket_fd;
         int port;
         int max_connections;
+        unsigned int max_client_body_size;
+        std::vector<std::string> server_names;
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
         
