@@ -2,11 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <map>
 
 struct ConfigBlock
 {
 	std::vector<ConfigBlock> blocks;
-	std::unordered_map<std::string, std::string> config_map;
+	std::map<std::string, std::string> config_map;
 };
 
 ConfigBlock ParseConfig(std::string file)
@@ -63,11 +64,4 @@ void PrintConfig(ConfigBlock *rootblock)
 			std::cout << config.first << " : " << config.second << std::endl;
 		}
 	}
-}
-
-int main()
-{
-	ConfigBlock rootblock = ParseConfig("../example.conf");
-	PrintConfig(&rootblock);
-
 }
