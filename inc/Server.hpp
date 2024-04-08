@@ -23,7 +23,7 @@ class Server
         ~Server();
 
         void init_server(char *config_file);
-        std::map<std::string, std::string> parse_config(char *filename);
+        std::map<std::string, std::vector<std::string>> parse_config(char *filename);
         int StartServer(char *config_file);
 
         int listen_to_socket();
@@ -40,6 +40,7 @@ class Server
 
     private:
         std::string ip;
+        std::vector<std::string> server_name;
         int socket_fd;
         int port;
         int max_connections;
