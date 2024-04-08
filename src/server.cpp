@@ -35,7 +35,7 @@ void Server::handle_request(int client_socket)
         Request request(client_socket, buffer);
         request.ParseRequest();
         request.HandleRequest();
-    }   
+    }
 }
 
 void	Server::handle_new_connection(int epoll_fd)
@@ -67,6 +67,7 @@ void	Server::accept_connection()
 		exit_error("eppol_ctl");
 	while (true)
 	{
+		struct epoll_event	events[MAX_EVENTS];
 		int n_events = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (n_events == -1)
 			exit_error("error getting events");

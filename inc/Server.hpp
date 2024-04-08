@@ -45,7 +45,6 @@ class Server
         int max_connections;
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
-        struct epoll_event	events[MAX_EVENTS];
 };
 
 #endif 
