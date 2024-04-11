@@ -38,7 +38,7 @@ void Server::handle_request(int client_socket)
 }
 int Server::set_fds(fd_set *readfds, std::vector<int> client_sockets)
 {
-    int sd, max_sd;
+    int sd, max_sd = socket_fd;
     for (int i = 0; i < max_connections; i++)
     {
         sd = client_sockets[i];

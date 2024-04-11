@@ -1,8 +1,8 @@
 #include "../inc/Server.hpp"
 
-std::map<std::string, std::vector<std::string>> Server::parse_config(char *filename)
+std::map<std::string, std::vector<std::string> > Server::parse_config(char *filename)
 {
-    std::map<std::string, std::vector<std::string>> config_map;
+    std::map<std::string, std::vector<std::string> > config_map;
     std::ifstream file(filename);
     if (!file.is_open())
         (exit_error("Failed to open configuration file"));
@@ -11,38 +11,44 @@ std::map<std::string, std::vector<std::string>> Server::parse_config(char *filen
     {
         if (line[0] == '#' || line.empty())
             continue ;
+        line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+        line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
         std::istringstream ss(line);
         std::string key, value;
         ss >> key;
         while (ss >> value)
         {
-            if (value.find(';'))
-            {
-                config_map[key].push_back(value.substr(0, value.find(';')));
-                break;
-            }
             config_map[key].push_back(value);
         }
+        config_map[key].back().resize(config_map[key].back().size() - 1);
     }
     return config_map;
 }
 
+void Server::TransferConfig(std::map<std::string, std::vector<std::string> > config_map)
+{
+    port = std::stoi(config_map["listen"][0]);
+    server_name = config_map["server_name"];
+    directory_index = config_map["DirectoryIndex"][0];
+    root = config_map["root"][0];
+    upload_dir = config_map["UploadDir"][0];
+    max_client_body_size = std::stoi(config_map["MaxClientBody"][0]);
+    cgi_extensions = config_map["CGIExtension"];
+
+    std::cout << std::endl;
+}
+
 void Server::init_server(char *config_file)
 {
+    std::map<std::string, std::vector<std::string> > config_map = parse_config(config_file);
+    
+    TransferConfig(config_map);
+
     max_connections = 3;
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_port = htons(port);
     sock_addr.sin_addr.s_addr = INADDR_ANY;
     sock_addr_len = sizeof(sock_addr);
-
-    std::map<std::string, std::vector<std::string>> config_map = parse_config(config_file);
-    port = std::stoi(config_map["listen"][0]);
-    std::cout << "port: " << port << std::endl;
-    server_name = config_map["server_name"];
-    std::cout << "server_name: ";
-    for (unsigned long i = 0; i < config_map["server_name"].size(); i++)
-        std::cout << config_map["server_name"][i];
-    std::cout << std::endl;
 }
 
 int Server::StartServer(char *config_file)

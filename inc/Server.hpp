@@ -23,7 +23,8 @@ class Server
         ~Server();
 
         void init_server(char *config_file);
-        std::map<std::string, std::vector<std::string>> parse_config(char *filename);
+        void TransferConfig(std::map<std::string, std::vector<std::string> > config_map);
+        std::map<std::string, std::vector<std::string> > parse_config(char *filename);
         int StartServer(char *config_file);
 
         int listen_to_socket();
@@ -39,15 +40,20 @@ class Server
         void    add_socket_to_vec(int client_socket, std::vector<int> &client_sockets);
 
     private:
-        std::string ip;
-        std::vector<std::string> server_name;
         int socket_fd;
+        struct sockaddr_in sock_addr;
+        socklen_t sock_addr_len;
+
         int port;
         int max_connections;
         unsigned int max_client_body_size;
-        std::vector<std::string> server_names;
-        struct sockaddr_in sock_addr;
-        socklen_t sock_addr_len;
+
+        std::string root;
+        std::string ip;
+        std::string directory_index;
+        std::string upload_dir;
+        std::vector<std::string> cgi_extensions;
+        std::vector<std::string> server_name;
         
 };
 
