@@ -31,7 +31,7 @@ void Server::handle_request(int client_socket)
     if (valread > 0)
     {
         buffer[valread] = '\0';
-        Request request(client_socket, buffer);
+        Request request(client_socket, buffer, config_map);
         request.ParseRequest();
         request.HandleRequest();
     }   
@@ -95,9 +95,10 @@ int Server::accept_connection()
     return 0;
 }
 
-Server::Server(char *config_file)
+Server::Server(char *_config_file)
 {
-    if (StartServer(config_file))
+    config_file = _config_file;
+    if (StartServer())
         exit_error("Failed to start server");
     std::cout << "Server started" << std::endl;
 }

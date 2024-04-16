@@ -2,10 +2,11 @@
 #include <iostream>
 #include <unistd.h>
 
-Request::Request(int client_socket, const char *buffer)
+Request::Request(int client_socket, const char *buffer, std::map<std::string, std::vector<std::string> > config_map)
 {
 	_client_socket = client_socket;
 	_buffer = buffer;
+	_config_map = config_map;
 }
 
 Request::~Request()
@@ -53,6 +54,12 @@ std::string Request::Handle_DELETE()
 }
 void Request::HandleRequest()
 {
+	if (isCgiRequest(request_map["Path"]))
+	{
+		std::cout << "Executing CGI" << std::endl;
+		execute_cgi(request_map["Path"]);
+		return ;
+	}
 	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
 	if (request_map["Method"] == "GET")
 	{

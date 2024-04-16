@@ -1,9 +1,8 @@
 #include "../inc/Server.hpp"
 
-std::map<std::string, std::vector<std::string> > Server::parse_config(char *filename)
+void Server::parse_config()
 {
-    std::map<std::string, std::vector<std::string> > config_map;
-    std::ifstream file(filename);
+    std::ifstream file(config_file);
     if (!file.is_open())
         (exit_error("Failed to open configuration file"));
     std::string line;
@@ -22,10 +21,9 @@ std::map<std::string, std::vector<std::string> > Server::parse_config(char *file
         }
         config_map[key].back().resize(config_map[key].back().size() - 1);
     }
-    return config_map;
 }
 
-void Server::TransferConfig(std::map<std::string, std::vector<std::string> > config_map)
+void Server::TransferConfig()
 {
     port = std::stoi(config_map["listen"][0]);
     server_name = config_map["server_name"];
@@ -33,16 +31,15 @@ void Server::TransferConfig(std::map<std::string, std::vector<std::string> > con
     root = config_map["root"][0];
     upload_dir = config_map["UploadDir"][0];
     max_client_body_size = std::stoi(config_map["MaxClientBody"][0]);
-    cgi_extensions = config_map["CGIExtension"];
+    cgi_extensions = config_map["CGIExtensions"];
 
     std::cout << std::endl;
 }
 
-void Server::init_server(char *config_file)
-{
-    std::map<std::string, std::vector<std::string> > config_map = parse_config(config_file);
-    
-    TransferConfig(config_map);
+void Server::init_server()
+{   
+    parse_config();
+    TransferConfig();
 
     max_connections = 3;
     sock_addr.sin_family = AF_INET;
@@ -51,9 +48,9 @@ void Server::init_server(char *config_file)
     sock_addr_len = sizeof(sock_addr);
 }
 
-int Server::StartServer(char *config_file)
+int Server::StartServer()
 {
-    init_server(config_file);
+    init_server();
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd == -1)
     {

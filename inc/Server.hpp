@@ -22,10 +22,10 @@ class Server
         Server(char *config);
         ~Server();
 
-        void init_server(char *config_file);
-        void TransferConfig(std::map<std::string, std::vector<std::string> > config_map);
-        std::map<std::string, std::vector<std::string> > parse_config(char *filename);
-        int StartServer(char *config_file);
+        void init_server();
+        void TransferConfig();
+        void parse_config();
+        int StartServer();
 
         int listen_to_socket();
         int accept_connection();
@@ -48,6 +48,8 @@ class Server
         int max_connections;
         unsigned int max_client_body_size;
 
+        const char *config_file;
+        std::map<std::string, std::vector<std::string> > config_map;
         std::string root;
         std::string ip;
         std::string directory_index;

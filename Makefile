@@ -1,6 +1,6 @@
 NAME = webserv
 CC = c++
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
 BUILD_DIR = build
 SRC_DIR = src
 INC_DIR = inc
