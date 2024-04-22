@@ -54,14 +54,13 @@ std::string Request::Handle_DELETE()
 }
 void Request::HandleRequest()
 {
+	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
 	if (isCgiRequest(request_map["Path"]))
 	{
 		std::cout << "Executing CGI" << std::endl;
 		execute_cgi(request_map["Path"]);
-		return ;
 	}
-	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
-	if (request_map["Method"] == "GET")
+	else if (request_map["Method"] == "GET")
 	{
 		std::string response = Handle_GET();
 		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;

@@ -4,7 +4,8 @@
 
 void Request::execute_cgi(std::string path)
 {
-	std::cout << "Executing CGI" << std::endl;
+	char *const argv[] = {NULL};
+	char *const envp[] = {NULL};
 	int pipe_fd[2];
 	if (pipe(pipe_fd) == -1)
 	{
@@ -22,7 +23,12 @@ void Request::execute_cgi(std::string path)
 		close(pipe_fd[0]);
 		dup2(pipe_fd[1], 1);
 		close(pipe_fd[1]);
-		execve(path.c_str(), NULL, NULL);
+		std::string cgi_script_path = _config_map["CGIDir"][0] + path;
+		if (execve(cgi_script_path.c_str(), argv, envp) == -1)
+		{
+			perror("execve fail");
+			exit(1);
+		}
 	}
 	else
 	{
@@ -30,15 +36,11 @@ void Request::execute_cgi(std::string path)
 		char buffer[1024];
 		int bytes_read;
 		while ((bytes_read = read(pipe_fd[0], buffer, 1024)) > 0)
-		{
 			write(_client_socket, buffer, bytes_read);
-		}
 		close(pipe_fd[0]);
 	}
-
-
-
 }
+
 bool Request::isCgiRequest(std::string path)
 {
 

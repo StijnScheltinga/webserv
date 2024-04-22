@@ -8,16 +8,16 @@ int Server::listen_to_socket()
     if (bind(socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
         close(socket_fd);
-        return (exit_error("Failed to bind socket"));
+        exit_error(BIND_FAIL, 0);
     }
     if (listen(socket_fd, max_connections) < 0)
     {
         close(socket_fd);
-        return (exit_error("Failed to listen to socket"));
+        exit_error(LISTEN_FAIL, 0);
     }
     std::ostringstream ss;
     ss << "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
-    log(ss.str());
+    std::cout << ss.str() << std::endl;
     return 0;
 }
 
@@ -75,14 +75,18 @@ int Server::accept_connection()
         FD_SET(socket_fd, &readfds);
         max_sd = set_fds(&readfds, client_sockets);
         if (select(max_sd + 1, &readfds, NULL, NULL, NULL) < 0)
-            return (exit_error("Select failed"));
+        {
+            std::cout << "Select failed\n";
+            exit(1);
+        }
         if (FD_ISSET(socket_fd, &readfds))
         {
             client_socket = accept(socket_fd, (struct sockaddr *)&client_addr, &client_addr_len);
             if (client_socket < 0)
             {
                 close(socket_fd);
-                return (exit_error("Failed to accept connection"));
+                std::cout << "Failed to accept connection\n";
+                exit(1);
             }
             add_socket_to_vec(client_socket, client_sockets);
         }
@@ -98,8 +102,7 @@ int Server::accept_connection()
 Server::Server(char *_config_file)
 {
     config_file = _config_file;
-    if (StartServer())
-        exit_error("Failed to start server");
+    StartServer();
     std::cout << "Server started" << std::endl;
 }
 

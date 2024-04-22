@@ -14,6 +14,7 @@
 #include <future>
 #include <fstream>
 #include <map>
+#include "Error.hpp"
 
 class Server
 {
@@ -25,7 +26,7 @@ class Server
         void init_server();
         void TransferConfig();
         void parse_config();
-        int StartServer();
+        void StartServer();
 
         int listen_to_socket();
         int accept_connection();
@@ -33,8 +34,7 @@ class Server
         void readRequest();
         void sendResponse();
         
-        void log(const std::string &message);
-        int exit_error(const std::string &message);
+        int exit_error(int exit_code, int line_num);
 
         int set_fds(fd_set *set, std::vector<int> client_sockets);
         void    add_socket_to_vec(int client_socket, std::vector<int> &client_sockets);
@@ -50,6 +50,7 @@ class Server
 
         const char *config_file;
         std::map<std::string, std::vector<std::string> > config_map;
+        std::string cgi_dir;
         std::string root;
         std::string ip;
         std::string directory_index;
