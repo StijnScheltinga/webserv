@@ -2,12 +2,13 @@
 
 void Server::init_server()
 {
-    port = 8080;
+    port = 8088;
     max_connections = 3;
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_port = htons(port);
     sock_addr.sin_addr.s_addr = INADDR_ANY;
     sock_addr_len = sizeof(sock_addr);
+	clientIndex = 0;
 }
 
 int Server::StartServer()

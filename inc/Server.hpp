@@ -2,6 +2,7 @@
 # define SERVER_HPP
 
 # define MAX_EVENTS 64
+# define MAX_CLIENTS 100
 
 #include <iostream>
 #include <stdlib.h>
@@ -15,6 +16,7 @@
 #include <vector>
 #include <future>
 #include <sys/epoll.h>
+#include "Client.hpp"
 
 class Server
 {
@@ -27,8 +29,9 @@ class Server
 
         int listen_to_socket();
         void accept_connection();
-		void handle_new_connection(int epoll_fd);
-        void handle_request(int client_socket);
+		void add_client(int epoll_fd);
+		void remove_client(int client_fd);
+        void handle_request(int client_fd);
         void readRequest();
         void sendResponse();
         
@@ -45,6 +48,9 @@ class Server
         int max_connections;
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
+
+		Client *clientArr[MAX_CLIENTS];
+		int	clientIndex;
 };
 
 #endif 
