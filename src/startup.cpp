@@ -28,7 +28,6 @@ void Server::parse_config()
 
 void Server::TransferConfig()
 {
-    std::cout << config_map["lol"][0];
     port = std::stoi(config_map["listen"][0]);
     server_name = config_map["server_name"];
     directory_index = config_map["DirectoryIndex"][0];

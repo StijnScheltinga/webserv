@@ -1,4 +1,3 @@
 #!/usr/bin/perl
 
-print "Content-Type: text/plain\n\n";
-print "Hello Cgi!!\n";
+print "Hello From Perl!!!\n";
