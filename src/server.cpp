@@ -17,7 +17,7 @@ int Server::listen_to_socket()
     }
     std::ostringstream ss;
     ss << "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
-    log(ss.str());
+    std::cout << ss.str() << std::endl;
     return 0;
 }
 
@@ -185,10 +185,10 @@ void	Server::accept_connection()
 //     return 0;
 // }
 
-Server::Server()
+Server::Server(char *_config_file)
 {
-    if (StartServer())
-        exit_error("Failed to start server");
+    config_file = _config_file;
+    StartServer();
     std::cout << "Server started" << std::endl;
 }
 

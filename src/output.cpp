@@ -1,12 +1,10 @@
 #include "../inc/Server.hpp"
+#include "../inc/Error.hpp"
 
-void Server::log(const std::string &message)
+int Server::exit_error(int exit_code, int line_num)
 {
-    std::cout << message << std::endl;
-}
-
-int Server::exit_error(const std::string &message)
-{
-    log("ERROR: " + message);
-    exit(1);
+    if (exit_code == 1)
+        std::cout << "Syntax error near line: " << line_num << std::endl;
+    std::cout << g_webserv_errors[exit_code] << std::endl;
+    exit(exit_code);
 }

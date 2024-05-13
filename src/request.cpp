@@ -4,10 +4,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-Request::Request(int client_socket, const char *buffer)
+Request::Request(int client_socket, const char *buffer, std::map<std::string, std::vector<std::string> > config_map)
 {
 	_client_socket = client_socket;
 	_buffer = buffer;
+	_config_map = config_map;
 }
 
 Request::~Request()
@@ -60,7 +61,12 @@ void Request::HandleRequest()
 	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
 	try
 	{
-		if (request_map["Method"] == "GET")
+		if (isCgiRequest(request_map["Path"]))
+		{
+			std::cout << "Executing CGI" << std::endl;
+			execute_cgi(request_map["Path"]);
+		}
+		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET();
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
@@ -74,7 +80,7 @@ void Request::HandleRequest()
 		}
 		else if (request_map["Method"] == "DELETE")
 		{
-
+			
 		}
 	}
 	catch (const std::exception& e)

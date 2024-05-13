@@ -17,15 +17,21 @@
 #include <future>
 #include <sys/epoll.h>
 #include "Client.hpp"
+#include <fstream>
+#include <map>
+#include "Error.hpp"
 
 class Server
 {
     public:
         Server();
+        Server(char *config);
         ~Server();
 
         void init_server();
-        int StartServer();
+        void TransferConfig();
+        void parse_config();
+        void StartServer();
 
         int listen_to_socket();
         void accept_connection();
@@ -35,22 +41,33 @@ class Server
         void readRequest();
         void sendResponse();
         
-        void log(const std::string &message);
-        int exit_error(const std::string &message);
+        int exit_error(int exit_code, int line_num);
 
         // int set_fds(fd_set *set, std::vector<int> client_sockets);
         // void    add_socket_to_vec(int client_socket, std::vector<int> &client_sockets);
 
     private:
-        std::string ip;
         int server_socket_fd;
-        int port;
-        int max_connections;
-        struct sockaddr_in sock_addr;
-        socklen_t sock_addr_len;
 
 		Client *clientArr[MAX_CLIENTS];
 		int	clientIndex;
+        struct sockaddr_in sock_addr;
+        socklen_t sock_addr_len;
+
+        int port;
+        int max_connections;
+        unsigned int max_client_body_size;
+
+        const char *config_file;
+        std::map<std::string, std::vector<std::string> > config_map;
+        std::string cgi_dir;
+        std::string root;
+        std::string ip;
+        std::string directory_index;
+        std::string upload_dir;
+        std::vector<std::string> cgi_extensions;
+        std::vector<std::string> server_name;
+        
 };
 
 #endif 
