@@ -24,23 +24,27 @@ int Server::listen_to_socket()
 void Server::handle_request(int client_fd)
 {
     char buffer[1024] = {0};
+    std::string response_string;
     
     // In the future we will need to handle the case where the request is larger than 1024 bytes.\
     // maybe append to buffer until read returns 0.
-    int valread = read(client_fd, buffer, 1024);
-	std::cout << "valread: " << valread << std::endl;
-    if (valread > 0)
+    int valread = 0;
+    while ((valread = read(client_fd, buffer, 1024)) > 0)
     {
-        buffer[valread] = '\0';
-        Request request(client_fd, buffer, config_map);
-        request.ParseRequest();
-        request.HandleRequest();
+        response_string.append(buffer);
+        if (valread < 1024)
+            break ;
     }
-	else if (valread == 0)
-	{
-		//handle disconnect
-		remove_client(client_fd);
-	}
+    response_string.append("\0");
+    std::cout << response_string << std::endl;
+    Request request(client_fd, response_string.c_str(), config_map);
+    request.ParseRequest();
+    request.HandleRequest();
+	// if (valread == 0)
+	// {
+	// 	//handle disconnect
+	// 	remove_client(client_fd);
+	// }
 }
 
 //currently no checks for max clients

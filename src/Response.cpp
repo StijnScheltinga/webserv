@@ -16,9 +16,11 @@ std::string	Response::getPage(std::string fileName)
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		// std::cout << buffer.str() << std::endl;
-		file.close();
 		return buffer.str();
 	}
 	else
+	{
+		std::cout << "Throwing exception\n";
 		throw std::exception();
+	}
 }

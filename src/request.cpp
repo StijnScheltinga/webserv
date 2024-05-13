@@ -44,12 +44,27 @@ void Request::ParseRequest()
 std::string Request::Handle_GET()
 {
 	Response	response;
+	std::cout << "Path: " << request_map["Path"] << std::endl;
 	return response.getPage(request_map["Path"]);
 }
 
 std::string Request::Handle_POST(std::string body)
 {
-	return body;
+	// I want to upload the file to the server
+	std::string response = "POST request received\n";
+	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+	std::string filename = "uploads" + request_map["Path"];
+	int fd = open(filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+	if (fd == -1)
+	{
+		std::cerr << "Failed to open file" << std::endl;
+		return "";
+	}
+	write(fd, body.c_str(), body.size());
+	close(fd);
+	return response;
+
+
 }
 
 std::string Request::Handle_DELETE()
