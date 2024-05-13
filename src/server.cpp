@@ -8,12 +8,12 @@ int Server::listen_to_socket()
     if (bind(server_socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
         close(server_socket_fd);
-        return (exit_error("Failed to bind socket"));
+        exit_error(SOCK_FAIL, 0);
     }
     if (listen(server_socket_fd, max_connections) < 0)
     {
         close(server_socket_fd);
-        return (exit_error("Failed to listen to socket"));
+        exit_error(BIND_FAIL, 0);
     }
     std::ostringstream ss;
     ss << "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
@@ -32,7 +32,7 @@ void Server::handle_request(int client_fd)
     if (valread > 0)
     {
         buffer[valread] = '\0';
-        Request request(client_fd, buffer);
+        Request request(client_fd, buffer, config_map);
         request.ParseRequest();
         request.HandleRequest();
     }
@@ -79,19 +79,19 @@ void	Server::accept_connection()
 {
 	int	epoll_fd = epoll_create1(0);
 	if (epoll_fd == -1)
-		exit_error("failed to create epoll");
+		exit_error(EPOLL_ERROR, 0);
 
 	struct epoll_event	event_server;
 	event_server.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR;
 	event_server.data.fd = server_socket_fd;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
-		exit_error("eppol_ctl");
+		exit_error(EPOLL_CTL_ERROR, 0);
 	while (true)
 	{
 		struct epoll_event	events[MAX_EVENTS];
 		int n_events = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (n_events == -1)
-			exit_error("error getting events");
+			exit_error(EVENT_ERROR, 0);
 
 		for (int i = 0; i != n_events; i++)
 		{

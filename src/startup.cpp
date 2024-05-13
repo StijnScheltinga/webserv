@@ -59,8 +59,6 @@ void Server::StartServer()
     server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_fd == -1)
     {
-        std::cerr << "Failed to create socket" << std::endl;
-        return 1;
+        exit_error(SOCK_FAIL, 0);
     }
-    return 0;
 }
