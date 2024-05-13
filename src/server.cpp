@@ -38,9 +38,12 @@ void Server::handle_request(int client_fd)
     }
 	else if (valread == 0)
 	{
-		//handle disconnect
+		// handle disconnect
 		remove_client(client_fd);
+		std::cout << "disconnect" << std::endl;
 	}
+	else
+		exit_error(READ_ERROR, 0);
 }
 
 //currently no checks for max clients
@@ -64,6 +67,7 @@ void	Server::remove_client(int client_fd)
 		//if fd of request to disconnect is same as client in arr, delete
 		if (client_fd == clientArr[i]->getFd())
 		{
+			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
 			delete clientArr[i];
 			std::cout << "client_deleted" << std::endl;
 				clientIndex--;
@@ -77,12 +81,12 @@ accept client through server socket
 add client to epoll instance*/
 void	Server::accept_connection()
 {
-	int	epoll_fd = epoll_create1(0);
+	epoll_fd = epoll_create1(0);
 	if (epoll_fd == -1)
 		exit_error(EPOLL_ERROR, 0);
 
 	struct epoll_event	event_server;
-	event_server.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR;
+	event_server.events = EPOLLIN;
 	event_server.data.fd = server_socket_fd;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
 		exit_error(EPOLL_CTL_ERROR, 0);
@@ -105,18 +109,6 @@ void	Server::accept_connection()
 				//handle request
 				std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
-			}
-			// else if (events[i].events & EPOLLOUT)
-			// {
-			// 	std::cout << "ready for writing" << std::endl;
-			// }
-			// else if (events[i].events & EPOLLERR)
-			// {
-			// 	std::cout << "error occured epoll" << std::endl;
-			// }
-			else if (events[i].events & EPOLLHUP)
-			{
-				std::cout << "user disconnected" << std::endl;
 			}
 		}
 	}

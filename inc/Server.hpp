@@ -58,6 +58,8 @@ class Server
         int max_connections;
         unsigned int max_client_body_size;
 
+		int	epoll_fd;
+
         const char *config_file;
         std::map<std::string, std::vector<std::string> > config_map;
         std::string cgi_dir;
