@@ -24,22 +24,21 @@ int Server::listen_to_socket()
 void Server::handle_request(int client_fd)
 {
     char buffer[1024] = {0};
-    std::string response_string;
+    std::string request_string;
     
     // In the future we will need to handle the case where the request is larger than 1024 bytes.\
     // maybe append to buffer until read returns 0.
     int valread = 0;
     while ((valread = read(client_fd, buffer, 1024)) > 0)
     {
-        response_string.append(buffer);
+    	request_string.append(buffer);
         if (valread < 1024)
             break ;
     }
-    response_string.append("\0");
-    std::cout << response_string << std::endl;
-    Request request(client_fd, response_string.c_str(), config_map);
+    request_string.append("\0");
+    Request request(client_fd, request_string.c_str(), config_map);
     request.ParseRequest();
-    request.HandleRequest();
+    request.HandleRequest(request_string);
 	// if (valread == 0)
 	// {
 	// 	//handle disconnect
@@ -107,7 +106,7 @@ void	Server::accept_connection()
 			else if (events[i].events & EPOLLIN)
 			{
 				//handle request
-				std::cout << "handle request" << std::endl;
+				//std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
 			}
 			// else if (events[i].events & EPOLLOUT)

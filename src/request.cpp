@@ -29,7 +29,7 @@ void Request::ParseRequest()
 	std::string line;
 	//skip the first line, it is parsed already.
 	std::getline(ss, line);
-	while (std::getline(ss, line) && line != "\r")
+	while (std::getline(ss, line))
 	{
 		size_t colon_pos = line.find(':');
 		if (colon_pos != std::string::npos)
@@ -44,25 +44,56 @@ void Request::ParseRequest()
 std::string Request::Handle_GET()
 {
 	Response	response;
-	std::cout << "Path: " << request_map["Path"] << std::endl;
+	//std::cout << "Path: " << request_map["Path"] << std::endl;
 	return response.getPage(request_map["Path"]);
 }
-
-std::string Request::Handle_POST(std::string body)
+std::string Request::find_file_name(std::string &request_string)
 {
-	// I want to upload the file to the server
+	std::string filename;
+	if (request_string.find("filename=") != std::string::npos)
+	{
+		filename = request_string.substr(request_string.find("filename=") + 9);
+		filename = filename.substr(1, filename.find("\r\n") - 2);
+	}
+	return filename;
+}
+
+std::string Request::find_boundary(std::string &request_string)
+{
+	std::string boundary;
+	if (request_string.find("boundary=") != std::string::npos)
+	{
+		boundary = request_string.substr(request_string.find("boundary=") + 9);
+		boundary = boundary.substr(0, boundary.find("\r\n"));
+	}
+	return boundary;
+}
+std::string Request::Handle_POST(std::string &request_string)
+{
 	std::string response = "POST request received\n";
 	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-	std::string filename = "uploads" + request_map["Path"];
+	std::string filename = _config_map["UploadDir"][0] + "/" + find_file_name(request_string);
+	std::string boundary = "--" + find_boundary(request_string);
 	int fd = open(filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (fd == -1)
 	{
 		std::cerr << "Failed to open file" << std::endl;
-		return "";
+		return "Failed to open file\n";
 	}
-	write(fd, body.c_str(), body.size());
+	std::string content;
+	size_t boundary_pos = request_string.find(boundary);
+	if (boundary_pos != std::string::npos)
+	{
+		content = request_string.substr(boundary_pos + boundary.size());
+	}
+	size_t end_boundary_pos = content.find(boundary);
+	if (end_boundary_pos != std::string::npos)
+	{
+		content = content.substr(0, end_boundary_pos);
+	}
+	write(fd, content.c_str(), content.size());
 	close(fd);
-	return response;
+	return response_string;
 
 
 }
@@ -71,9 +102,8 @@ std::string Request::Handle_DELETE()
 {
 	return "";
 }
-void Request::HandleRequest()
+void Request::HandleRequest(std::string &request_string)
 {
-	std::cout << "Accepted a " << request_map["Method"] << " request!" << std::endl;
 	try
 	{
 		if (isCgiRequest(request_map["Path"]))
@@ -89,9 +119,8 @@ void Request::HandleRequest()
 		}
 		else if (request_map["Method"] == "POST")
 		{
-			std::string response = Handle_POST(request_map["Body"]);
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			write(_client_socket, response_header.c_str(), response_header.size());
+			std::string response = Handle_POST(request_string);
+			write(_client_socket, response.c_str(), response.size());
 		}
 		else if (request_map["Method"] == "DELETE")
 		{
