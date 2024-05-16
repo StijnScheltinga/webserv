@@ -39,7 +39,7 @@ void Request::execute_cgi(std::string path)
 		while ((bytes_read = read(pipe_fd[0], buffer, 1024)) > 0)
 			response.append(buffer, bytes_read);
 		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		write(_client_socket, response_header.c_str(), response_header.size());
+		write(_client_fd, response_header.c_str(), response_header.size());
 		close(pipe_fd[0]);
 	}
 }

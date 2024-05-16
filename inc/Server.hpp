@@ -38,13 +38,16 @@ class Server
 		void add_client(int epoll_fd);
 		void remove_client(int client_fd);
         void handle_request(int client_fd);
+		void create_write_request(const std::string& data, int client_fd);
+		void process_write_request(int client_fd);
         void readRequest();
         void sendResponse();
+
         
         int exit_error(int exit_code, int line_num);
 
-        // int set_fds(fd_set *set, std::vector<int> client_sockets);
-        // void    add_socket_to_vec(int client_socket, std::vector<int> &client_sockets);
+        // int set_fds(fd_set *set, std::vector<int> client_fds);
+        // void    add_socket_to_vec(int client_fd, std::vector<int> &client_fds);
 
     private:
         int server_socket_fd;
@@ -59,6 +62,13 @@ class Server
         unsigned int max_client_body_size;
 
 		int	epoll_fd;
+
+		typedef struct writeRequest {
+			int 		fd;
+			std::string	data;
+		} writeRequest;
+
+		std::vector<writeRequest*> writeRequests;
 
         const char *config_file;
         std::map<std::string, std::vector<std::string> > config_map;
