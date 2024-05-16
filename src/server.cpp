@@ -26,27 +26,26 @@ void Server::handle_request(int client_fd)
     char buffer[1024] = {0};
     std::string request_string;
     
-    // In the future we will need to handle the case where the request is larger than 1024 bytes.\
-    // maybe append to buffer until read returns 0.
-    int valread = 0;
-    while ((valread = read(client_fd, buffer, 1024)) > 0)
-    {
-    	request_string.append(buffer);
-        if (valread < 1024)
-            break ;
-    }
-    if (valread == 0)
+    int valread = read(client_fd, buffer, 1024);
+	if (valread == 0)
     {
       // handle disconnect
       remove_client(client_fd);
       std::cout << "disconnect" << std::endl;
     }
-    else
-    {
-      request_string.append("\0");
-      Request request(client_fd, request_string.c_str(), config_map);
-      request.ParseRequest();
-      request.HandleRequest(request_string);
+	else
+	{
+		while (valread > 0)
+		{
+			request_string.append(buffer);
+			if (valread < 1024)
+				break ;
+			valread = read(client_fd, buffer, 1024);
+		}
+		request_string.append("\0");
+		Request request(client_fd, request_string.c_str(), config_map);
+		request.ParseRequest();
+		request.HandleRequest(request_string);
     }
 }
 
