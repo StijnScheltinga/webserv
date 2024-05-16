@@ -89,6 +89,7 @@ void	Server::accept_connection()
 		exit_error(EPOLL_ERROR, 0);
 
 	struct epoll_event	event_server;
+	//only EPOLLIN for connecting with users
 	event_server.events = EPOLLIN;
 	event_server.data.fd = server_socket_fd;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
@@ -112,6 +113,11 @@ void	Server::accept_connection()
 				//handle request
 				//std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
+			}
+			else if (events[i].events & EPOLLOUT)
+			{
+				//check for write request
+				std::cout << "ready for writing" << std::endl;
 			}
 		}
 	}
