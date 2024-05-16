@@ -28,14 +28,6 @@
 
 void Server::TransferConfig()
 {
-    for (auto &config : server_block.config_map)
-    {
-        std::cout << config.first << ": ";
-        for (auto &value : config.second)
-        {
-            std::cout << value << std::endl;
-        }
-    }
     port = std::stoi(server_block.config_map["listen"][0]);
     server_name = server_block.config_map["ServerName"];
     directory_index = server_block.config_map["DirectoryIndex"][0];
@@ -50,9 +42,6 @@ void Server::TransferConfig()
 
 void Server::init_server()
 {   
-    // parse_config();
-    TransferConfig();
-
     max_connections = 3;
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_port = htons(port);

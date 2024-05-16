@@ -158,6 +158,7 @@ void	Server::accept_connection()
 Server::Server(const char *config_file)
 {
     server_block = ParseConfig(config_file);
+	TransferConfig();
     StartServer();
     std::cout << "Server started" << std::endl;
 }
