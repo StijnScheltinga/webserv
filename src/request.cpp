@@ -136,6 +136,7 @@ void Request::HandleRequest(std::string &request_string)
 	catch (const std::exception& e)
 	{
 		std::cout << "improper request" << std::endl;
+		std::cout << "response: " << _client_socket << BAD_REQUEST.c_str() << BAD_REQUEST.size() << std::endl;
 		write(_client_socket, BAD_REQUEST.c_str(), BAD_REQUEST.size());
 	}
 }
