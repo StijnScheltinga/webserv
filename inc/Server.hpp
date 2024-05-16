@@ -53,8 +53,6 @@ class Server
     private:
         int server_socket_fd;
 
-        Client *clientArr[MAX_CLIENTS];
-        int	clientIndex;
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
 
@@ -64,13 +62,14 @@ class Server
 
         int	epoll_fd;
 
+        std::vector<Client*> clientVec;
 
         typedef struct writeRequest {
           int 		fd;
           std::string	data;
         } writeRequest;
 
-		    std::vector<writeRequest*> writeRequests;
+		std::vector<writeRequest*> writeRequests;
 
         ServerBlock server_block;
 
