@@ -3,12 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-
-struct ConfigBlock
-{
-	std::vector<ConfigBlock> blocks;
-	std::map<std::string, std::string> config_map;
-};
+#include "../inc/Config.hpp"
 
 ConfigBlock ParseConfig(std::string file)
 {

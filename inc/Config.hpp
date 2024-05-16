@@ -1,7 +1,15 @@
-#include <iostream>
-#include <map>
-#include <fstream>
-#include <sstream>
+#ifndef CONFIG_HPP
+# define CONFIG_HPP
+# include <iostream>
+# include <map>
+# include <fstream>
+# include <sstream>
+
+struct ConfigBlock
+{
+	std::vector<ConfigBlock> blocks;
+	std::map<std::string, std::string> config_map;
+};
 
 class Config
 {
@@ -20,3 +28,7 @@ class Config
 		std::string max_client_body_size;
 
 };
+
+ConfigBlock ParseConfig(std::string file);
+
+#endif

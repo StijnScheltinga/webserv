@@ -37,7 +37,7 @@ void Server::handle_request(int client_fd)
 	{
 		while (valread > 0)
 		{
-			request_string.append(buffer);
+			request_string.append(buffer, valread);
 			if (valread < 1024)
 				break ;
 			valread = read(client_fd, buffer, 1024);
