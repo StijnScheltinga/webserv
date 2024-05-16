@@ -60,13 +60,14 @@ std::string Request::find_file_name(std::string &request_string)
 
 std::string Request::find_boundary(std::string &request_string)
 {
-	std::string boundary;
 	if (request_string.find("boundary=") != std::string::npos)
 	{
+		std::string boundary;
 		boundary = request_string.substr(request_string.find("boundary=") + 9);
 		boundary = boundary.substr(0, boundary.find("\r\n"));
+		return boundary;
 	}
-	return boundary;
+	return "";
 }
 std::string Request::Handle_POST(std::string &request_string)
 {
@@ -85,12 +86,17 @@ std::string Request::Handle_POST(std::string &request_string)
 	if (boundary_pos != std::string::npos)
 	{
 		content = request_string.substr(boundary_pos + boundary.size());
+		for (int i  = 0; i < 4; i++)
+		{
+			content = content.substr(content.find("\r\n") + 2);
+		}
 	}
 	size_t end_boundary_pos = content.find(boundary);
 	if (end_boundary_pos != std::string::npos)
 	{
 		content = content.substr(0, end_boundary_pos);
 	}
+
 	write(fd, content.c_str(), content.size());
 	close(fd);
 	return response_string;
