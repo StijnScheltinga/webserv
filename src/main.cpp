@@ -1,4 +1,5 @@
 #include "../inc/Server.hpp"
+#include "../inc/Config.hpp"
 
 int main(int argc, char **argv)
 {

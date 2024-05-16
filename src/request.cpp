@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <fstream>
 
 Request::Request(int client_socket, const char *buffer, std::map<std::string, std::vector<std::string> > config_map)
 {
@@ -49,25 +50,22 @@ std::string Request::Handle_GET()
 }
 std::string Request::find_file_name(std::string &request_string)
 {
-	std::string filename;
-	if (request_string.find("filename=") != std::string::npos)
-	{
-		filename = request_string.substr(request_string.find("filename=") + 9);
-		filename = filename.substr(1, filename.find("\r\n") - 2);
-	}
-	return filename;
+	size_t filename_pos = request_string.find("filename=\"");
+	if (filename_pos == std::string::npos)
+		return "";
+	filename_pos += 10;
+	size_t filename_end_pos = request_string.find("\"", filename_pos);
+	return (request_string.substr(filename_pos, filename_end_pos - filename_pos));
 }
 
 std::string Request::find_boundary(std::string &request_string)
 {
-	if (request_string.find("boundary=") != std::string::npos)
-	{
-		std::string boundary;
-		boundary = request_string.substr(request_string.find("boundary=") + 9);
-		boundary = boundary.substr(0, boundary.find("\r\n"));
-		return boundary;
-	}
-	return "";
+	size_t boundary_pos = request_string.find("boundary=");
+	if (boundary_pos == std::string::npos)
+		return "";
+	boundary_pos += 9;
+	size_t boundary_end_pos = request_string.find("\r\n", boundary_pos);
+	return (request_string.substr(boundary_pos, boundary_end_pos - boundary_pos));
 }
 std::string Request::Handle_POST(std::string &request_string)
 {
@@ -75,35 +73,24 @@ std::string Request::Handle_POST(std::string &request_string)
 	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 	std::string filename = _config_map["UploadDir"][0] + "/" + find_file_name(request_string);
 	std::string boundary = "--" + find_boundary(request_string);
-	std::cout << "filename: " << filename << std::endl;
-	std::cout << "boundary: " << boundary << std::endl;
-	int fd = open(filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
-	if (fd == -1)
+	std::ofstream ofs(filename.c_str(), std::ios::binary);
+	if (!ofs.is_open())
 	{
-		std::cerr << "Failed to open file" << std::endl;
-		return "Failed to open file\n";
+		std::cout << "Error opening file" << std::endl;
+		return "HTTP/1.1 500 Internal Server Error\r\n\r\n";
 	}
-	std::string content;
 	size_t boundary_pos = request_string.find(boundary);
-	if (boundary_pos != std::string::npos)
+	if (boundary_pos == std::string::npos)
 	{
-		content = request_string.substr(boundary_pos + boundary.size());
-		for (int i  = 0; i < 4; i++)
-		{
-			content = content.substr(content.find("\r\n") + 2);
-		}
+		std::cerr << "Boundary not found" << std::endl;
+		return BAD_REQUEST;
 	}
-	size_t end_boundary_pos = content.find(boundary);
-	if (end_boundary_pos != std::string::npos)
-	{
-		content = content.substr(0, end_boundary_pos);
-	}
-
-	write(fd, content.c_str(), content.size());
-	close(fd);
+	size_t content_start = request_string.find("\r\n\r\n", boundary_pos) + 4;
+	size_t content_end = request_string.find(boundary + "--", content_start) - 4;
+	std::string content = request_string.substr(content_start, content_end - content_start);
+	ofs.write(content.c_str(), content.size());
+	ofs.close();
 	return response_string;
-
-
 }
 
 std::string Request::Handle_DELETE()
