@@ -20,12 +20,13 @@
 #include <fstream>
 #include <map>
 #include "Error.hpp"
+#include "Config.hpp"
 
 class Server
 {
     public:
         Server();
-        Server(char *config);
+        Server(const char *config_file);
         ~Server();
 
         void init_server();
@@ -52,8 +53,8 @@ class Server
     private:
         int server_socket_fd;
 
-		Client *clientArr[MAX_CLIENTS];
-		int	clientIndex;
+        Client *clientArr[MAX_CLIENTS];
+        int	clientIndex;
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
 
@@ -61,16 +62,18 @@ class Server
         int max_connections;
         unsigned int max_client_body_size;
 
-		int	epoll_fd;
+        int	epoll_fd;
 
-		typedef struct writeRequest {
-			int 		fd;
-			std::string	data;
-		} writeRequest;
 
-		std::vector<writeRequest*> writeRequests;
+        typedef struct writeRequest {
+          int 		fd;
+          std::string	data;
+        } writeRequest;
 
-        const char *config_file;
+		    std::vector<writeRequest*> writeRequests;
+
+        ServerBlock server_block;
+
         std::map<std::string, std::vector<std::string> > config_map;
         std::string cgi_dir;
         std::string root;
