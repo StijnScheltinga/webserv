@@ -16,10 +16,12 @@ class Request
 		Request(int client_socket, const char *buffer, std::map<std::string, std::vector<std::string> > config_map);
 		~Request();
 		void ParseRequest();
-		void HandleRequest();
+		void HandleRequest(std::string &request_string);
 		std::string Handle_GET();
-		std::string Handle_POST(std::string body);
+		std::string Handle_POST(std::string &request_string);
 		std::string Handle_DELETE();
+		std::string find_file_name(std::string &request_string);
+		std::string find_boundary(std::string &request_string);
 		void	printMap();
 		void	printRequest();
 		
