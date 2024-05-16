@@ -75,6 +75,8 @@ std::string Request::Handle_POST(std::string &request_string)
 	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 	std::string filename = _config_map["UploadDir"][0] + "/" + find_file_name(request_string);
 	std::string boundary = "--" + find_boundary(request_string);
+	std::cout << "filename: " << filename << std::endl;
+	std::cout << "boundary: " << boundary << std::endl;
 	int fd = open(filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (fd == -1)
 	{
