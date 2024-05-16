@@ -22,6 +22,36 @@ int Server::listen_to_socket()
     return 0;
 }
 
+/*
+creates an array of write requests.
+will later be looked at if it is possible to write data to client
+if so data from write request will be send to client and write request will be deleted
+*/
+void	Server::create_write_request(const std::string& data, int client_fd)
+{
+	writeRequest	*newRequest = new writeRequest;
+	newRequest->fd = client_fd;
+	newRequest->data = data;
+	writeRequests.push_back(newRequest);
+}
+
+void	Server::process_write_request(int client_fd)
+{
+	if (writeRequests.empty())
+		return ;
+	std::vector<writeRequest*>::iterator it;
+	for (it = writeRequests.begin(); it != writeRequests.end(); it++)
+	{
+		if (client_fd == (*it)->fd)
+		{
+			write((*it)->fd, (*it)->data.c_str(), (*it)->data.size());
+			delete *it;
+			writeRequests.erase(it);
+			break ;
+		}
+	}
+}
+
 void Server::handle_request(int client_fd)
 {
     char buffer[1024] = {0};
@@ -44,7 +74,7 @@ void Server::handle_request(int client_fd)
 			valread = read(client_fd, buffer, 1024);
 		}
 		request_string.append("\0");
-		Request request(client_fd, request_string.c_str(), server_block.config_map);
+		Request request(client_fd, request_string.c_str(), server_block.config_map, this);
 		request.ParseRequest();
 		request.HandleRequest(request_string);
     }
@@ -90,6 +120,7 @@ void	Server::accept_connection()
 		exit_error(EPOLL_ERROR, 0);
 
 	struct epoll_event	event_server;
+	//only EPOLLIN for connecting with users
 	event_server.events = EPOLLIN;
 	event_server.data.fd = server_socket_fd;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
@@ -114,72 +145,15 @@ void	Server::accept_connection()
 				//std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
 			}
+			else if (events[i].events & EPOLLOUT)
+			{
+				//check for write request
+				process_write_request(events[i].data.fd);
+				// std::cout << "ready for writing" << std::endl;
+			}
 		}
 	}
 }
-
-// int Server::set_fds(fd_set *readfds, std::vector<int> client_sockets)
-// {
-//     int sd = 0;
-//     int max_sd = server_socket_fd;
-//     for (int i = 0; i < max_connections; i++)
-//     {
-//         sd = client_sockets[i];
-//         if (sd > 0)
-//             FD_SET(sd, readfds);
-//         if (sd > max_sd)
-//             max_sd = sd;
-//     }
-//     return max_sd;
-// }
-
-// void Server::add_socket_to_vec(int client_socket, std::vector<int> &client_sockets)
-// {
-//     for (int i = 0; i < max_connections; i++)
-//     {
-//         if (client_sockets[i] == 0)
-//         {
-//             client_sockets[i] = client_socket;
-//             return ;
-//         }
-//     }
-// }
-
-
-// int Server::accept_connection()
-// {
-//     fd_set readfds;
-//     int max_sd;
-//     int client_socket;
-//     sockaddr_in client_addr;
-//     socklen_t client_addr_len = sizeof(client_addr);
-//     std::vector<int> client_sockets(max_connections, 0);
-//     while (true)
-//     {
-//         FD_ZERO(&readfds);
-//         FD_SET(server_socket_fd, &readfds);
-//         max_sd = set_fds(&readfds, client_sockets);
-//         if (select(max_sd + 1, &readfds, NULL, NULL, NULL) < 0)
-//             return (exit_error("Select failed"));
-//         if (FD_ISSET(server_socket_fd, &readfds))
-//         {
-//             client_socket = accept(server_socket_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-// 			std::cout << "lol" << std::endl;
-//             if (client_socket < 0)
-//             {
-//                 close(server_socket_fd);
-//                 return (exit_error("Failed to accept connection"));
-//             }
-//             add_socket_to_vec(client_socket, client_sockets);
-//         }
-//         for (int i = 0; i < max_connections; i++)
-//         {
-//             if (FD_ISSET(client_sockets[i], &readfds))
-//                 handle_request(client_sockets[i]);
-//         }
-//     }
-//     return 0;
-// }
 
 Server::Server(const char *config_file)
 {

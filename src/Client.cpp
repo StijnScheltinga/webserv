@@ -12,7 +12,8 @@ void	Client::acceptClient(int server_socket_fd, int epoll_fd)
 	if (client_fd == -1)
 		std::cout << "error client" << std::endl;
 	event.data.fd = client_fd;
-	event.events = EPOLLIN;
+	//needs to check input and output of clients at the same time
+	event.events = EPOLLIN | EPOLLOUT;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event) == -1)
 		std::cout << "error client" << std::endl;
 }
