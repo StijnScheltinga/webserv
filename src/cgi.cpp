@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../inc/Response.hpp"
+#include "../inc/Request.hpp"
 
 
 void Request::execute_cgi(std::string path)

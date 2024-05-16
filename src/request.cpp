@@ -1,5 +1,4 @@
 #include "../inc/Request.hpp"
-#include "../inc/Response.hpp"
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
@@ -43,9 +42,26 @@ void Request::ParseRequest()
 
 std::string Request::Handle_GET()
 {
-	Response	response;
-	//std::cout << "Path: " << request_map["Path"] << std::endl;
-	return response.getPage(request_map["Path"]);
+	std::string	fileName(request_map["Path"]);
+	
+	std::cout << "Path: " << fileName << std::endl;
+
+	if (fileName == "/")
+		fileName += "index.html";
+	std::string	path = "webSrc" + fileName;
+	std::ifstream	file(path);
+	if (file.is_open() && file.good())
+	{
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		// std::cout << buffer.str() << std::endl;
+		return buffer.str();
+	}
+	else
+	{
+		std::cout << "Throwing exception\n";
+		throw std::exception();
+	}
 }
 std::string Request::find_file_name(std::string &request_string)
 {
