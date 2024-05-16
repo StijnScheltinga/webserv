@@ -88,23 +88,25 @@ void	Server::add_client(int epoll_fd)
 	//accepts client through accept function and adds it to the epoll instance
 	client->acceptClient(server_socket_fd, epoll_fd);
 
-	//add client to client arr
-	clientArr[clientIndex] = client;
-	clientIndex++;
+	//add client to client vec
+	clientVec.push_back(client);
+	std::cout << "client accepted and put in vector of clients" << std::endl;
 }
 
 void	Server::remove_client(int client_fd)
 {
+	std::vector<Client*>::iterator it;
 	//loop through client array
-	for (int i = 0; i <= clientIndex; i++)
+	for (it = clientVec.begin(); it != clientVec.end(); it++)
 	{
 		//if fd of request to disconnect is same as client in arr, delete
-		if (client_fd == clientArr[i]->getFd())
+		if (client_fd == (*it)->getFd())
 		{
 			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-			delete clientArr[i];
-			std::cout << "client_deleted" << std::endl;
-				clientIndex--;
+			delete (*it);
+			clientVec.erase(it);
+			std::cout << "client_deleted from vector" << std::endl;
+			break ;
 		}
 	}
 }

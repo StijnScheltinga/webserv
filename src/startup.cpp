@@ -58,7 +58,6 @@ void Server::init_server()
     sock_addr.sin_port = htons(port);
     sock_addr.sin_addr.s_addr = INADDR_ANY;
     sock_addr_len = sizeof(sock_addr);
-	clientIndex = 0;
 }
 
 void Server::StartServer()
