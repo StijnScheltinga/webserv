@@ -1,5 +1,6 @@
 #include "../inc/Server.hpp"
 #include "../inc/Request.hpp"
+#include "../inc/Config.hpp"
 #include <poll.h>
 #include <vector>
 
@@ -43,7 +44,7 @@ void Server::handle_request(int client_fd)
 			valread = read(client_fd, buffer, 1024);
 		}
 		request_string.append("\0");
-		Request request(client_fd, request_string.c_str(), config_map);
+		Request request(client_fd, request_string.c_str(), server_block.config_map);
 		request.ParseRequest();
 		request.HandleRequest(request_string);
     }
@@ -180,9 +181,9 @@ void	Server::accept_connection()
 //     return 0;
 // }
 
-Server::Server(char *_config_file)
+Server::Server(const char *config_file)
 {
-    config_file = _config_file;
+    server_block = ParseConfig(config_file);
     StartServer();
     std::cout << "Server started" << std::endl;
 }

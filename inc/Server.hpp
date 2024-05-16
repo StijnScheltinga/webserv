@@ -20,12 +20,13 @@
 #include <fstream>
 #include <map>
 #include "Error.hpp"
+#include "Config.hpp"
 
 class Server
 {
     public:
         Server();
-        Server(char *config);
+        Server(const char *config_file);
         ~Server();
 
         void init_server();
@@ -60,7 +61,7 @@ class Server
 
 		int	epoll_fd;
 
-        const char *config_file;
+        ServerBlock server_block;
         std::map<std::string, std::vector<std::string> > config_map;
         std::string cgi_dir;
         std::string root;

@@ -5,10 +5,9 @@
 # include <fstream>
 # include <sstream>
 
-struct ConfigBlock
+struct ServerBlock
 {
-	std::vector<ConfigBlock> blocks;
-	std::map<std::string, std::string> config_map;
+	std::map<std::string, std::vector<std::string> > config_map;
 };
 
 class Config
@@ -21,7 +20,7 @@ class Config
 		void printMap();
 
 	private:
-		std::map<std::string, std::string> config_map;
+		std::map<std::string, std::vector<std::string> > config_map;
 		std::string listen;
 		std::string server_name;
 		std::string error_page;
@@ -29,6 +28,6 @@ class Config
 
 };
 
-ConfigBlock ParseConfig(std::string file);
+ServerBlock ParseConfig(std::string file);
 
 #endif

@@ -5,12 +5,10 @@
 #include <map>
 #include "../inc/Config.hpp"
 
-ConfigBlock ParseConfig(std::string file)
+ServerBlock ParseConfig(std::string file)
 {
 	std::ifstream config_file(file);
 	std::string line;
-	ConfigBlock rootblock;
-	ConfigBlock *curr_block = &rootblock;
 	if (config_file.is_open())
 	{
 		while (std::getline(config_file, line))
@@ -21,23 +19,24 @@ ConfigBlock ParseConfig(std::string file)
 				continue;
 			if (line.find('{') != std::string::npos)
 			{
-				std::string block_name = line.substr(0, line.find('{') - 1);
-				ConfigBlock new_block;
-				curr_block->blocks.push_back(new_block);
-				curr_block = &curr_block->blocks.back();
-				curr_block->config_map["BlockName"] = block_name;
-			}
-			else if (line.find('}') != std::string::npos)
-				curr_block = &rootblock;
-			else
-			{
-				std::istringstream ss(line);
-				std::string key, value;
-				ss >> key;
-				ss >> value;
-				value.substr(value.find(';'));
-
-				curr_block->config_map[key] = value;
+				ServerBlock block;
+				//block.config_map["ServerName"][0] = line.substr(0, line.find('{') - 1);
+				while (std::getline(config_file, line))
+				{
+					line.erase(0, line.find_first_not_of("\t\r\n "));
+					line.erase(line.find_last_not_of("\t\r\n ") + 1);
+					if (line[0] == '#' || line.empty())
+						continue;
+					if (line.find('}') != std::string::npos)
+						break ;
+					std::istringstream ss(line);
+					std::string key, value;
+					ss >> key;
+					while (ss >> value)
+						block.config_map[key].push_back(value);
+					block.config_map[key].back().resize(block.config_map[key].back().size() - 1);
+				}
+				return block;
 			}
 		}
 	}
@@ -45,18 +44,18 @@ ConfigBlock ParseConfig(std::string file)
 	{
 		std::cerr << "Failed to open config file" << std::endl;
 	}
-	return rootblock;
+	return ServerBlock();
 }
 
-void PrintConfig(ConfigBlock *rootblock)
-{
-	std::cout << "Printing config" << std::endl;
-	for (auto &block : rootblock->blocks)
-	{
-		std::cout << "Block: " << block.config_map["BlockName"] << std::endl;
-		for (auto &config : block.config_map)
-		{
-			std::cout << config.first << " : " << config.second << std::endl;
-		}
-	}
-}
+// void PrintConfig(ServerBlock *rootblock)
+// {
+// 	std::cout << "Printing config" << std::endl;
+// 	for (auto &block : rootblock->blocks)
+// 	{
+// 		std::cout << "Block: " << block.config_map["BlockName"] << std::endl;
+// 		for (auto &config : block.config_map)
+// 		{
+// 			std::cout << config.first << " : " << config.second << std::endl;
+// 		}
+// 	}
+// }
