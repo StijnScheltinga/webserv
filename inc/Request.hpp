@@ -22,8 +22,8 @@ class Request
 		std::string Handle_DELETE();
 		std::string find_file_name(std::string &request_string);
 		std::string find_boundary(std::string &request_string);
+		std::string getErrorPage(std::string filename);
 		void	printMap();
-		void	printRequest();
 		
 		bool isCgiRequest(std::string path);
 		void execute_cgi(std::string path);

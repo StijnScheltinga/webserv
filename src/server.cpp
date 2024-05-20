@@ -17,8 +17,8 @@ int Server::listen_to_socket()
         exit_error(BIND_FAIL, 0);
     }
     std::ostringstream ss;
-    ss << "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
-    std::cout << ss.str() << std::endl;
+    ss <<  "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
+    std::cout << GREEN << ss.str() << RESET << std::endl;
     return 0;
 }
 
@@ -160,12 +160,12 @@ void	Server::accept_connection()
 Server::Server(const char *config_file)
 {
     server_block = ParseConfig(config_file);
+	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
     StartServer();
-    std::cout << "Server started" << std::endl;
 }
 
 Server::~Server()
 {
     close(server_socket_fd);
-    std::cout << "Server destructor called" << std::endl;
+    std::cout << RED << "Server closed" <<  RESET << std::endl;
 }
