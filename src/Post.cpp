@@ -1,4 +1,5 @@
 #include "../inc/Request.hpp"
+#include "../inc/ServerException.hpp"
 
 std::string Request::find_file_name(std::string &request_string)
 {
@@ -30,13 +31,13 @@ std::string Request::Handle_POST(std::string &request_string)
 	if (!ofs.is_open())
 	{
 		std::cout << "Error opening file" << std::endl;
-		throw std::exception();
+		throw InternalServerErrorException();
 	}
 	size_t boundary_pos = request_string.find(boundary);
 	if (boundary_pos == std::string::npos)
 	{
 		std::cerr << "Boundary not found" << std::endl;
-		throw std::exception();
+		throw InternalServerErrorException();
 	}
 	size_t content_start = request_string.find("\r\n\r\n", boundary_pos) + 4;
 	size_t content_end = request_string.find(boundary + "--", content_start) - 4;

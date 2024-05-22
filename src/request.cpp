@@ -1,4 +1,5 @@
 #include "../inc/Request.hpp"
+#include "../inc/ServerException.hpp"
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
@@ -69,11 +70,24 @@ void Request::HandleRequest(std::string &request_string)
 			
 		}
 	}
-	catch (const std::exception& e)
+	catch (const BadRequestException &e)
 	{
-		std::string ErrorPage = getErrorPage("404.html");
-		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(ErrorPage.size()) + "\r\n\r\n" + ErrorPage;
-		write(_client_fd, response_header.c_str(), response_header.size());
+		std::cerr << RED << e.what() << RESET << std::endl;
+		std::string response = getErrorPage("400.html");
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		_serverInstance->create_write_request(response_header, _client_fd);
+	}
+	catch (const NotFoundException &e){
+		std::cerr << RED <<  e.what() << RESET <<  std::endl;
+		std::string response = getErrorPage("404.html");
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		_serverInstance->create_write_request(response_header, _client_fd);
+	}
+	catch (const InternalServerErrorException &e){
+		std::cerr << RED << e.what() << RESET << std::endl;
+		std::string response = getErrorPage("500.html");
+		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		_serverInstance->create_write_request(response_header, _client_fd);
 	}
 }
 
