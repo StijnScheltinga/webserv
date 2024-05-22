@@ -48,16 +48,13 @@ void Request::HandleRequest(std::string &request_string)
 	{
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		if (isCgiRequest(request_map["Path"]))
-		{
 			execute_cgi(request_map["Path"]);
-		}
 		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET();
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			//create write request
 			_serverInstance->create_write_request(response_header, _client_fd);
-			// write(_client_fd, response_header.c_str(), response_header.size());
 		}
 		else if (request_map["Method"] == "POST")
 		{
@@ -67,7 +64,7 @@ void Request::HandleRequest(std::string &request_string)
 		}
 		else if (request_map["Method"] == "DELETE")
 		{
-			
+			Handle_DELETE();
 		}
 	}
 	catch (const BadRequestException &e)
