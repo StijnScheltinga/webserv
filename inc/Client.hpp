@@ -15,7 +15,7 @@ class Client
 	public:
 		Client();
 		~Client();
-		void	acceptClient(int server_socket_fd, int epoll_fd);
+		int	acceptClient(int server_socket_fd, int epoll_fd);
 		int		getFd() const;
 };
 

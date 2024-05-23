@@ -1,7 +1,7 @@
 #ifndef ERROR_HPP
 # define ERROR_HPP
 
-# define WEBSERV_ERRMAX 9
+# define WEBSERV_ERRMAX 10
 
 typedef enum webserv_errno
 {
@@ -14,6 +14,7 @@ typedef enum webserv_errno
 	EPOLL_CTL_ERROR,
 	EVENT_ERROR,
 	READ_ERROR,
+	ACCEPT_ERROR,
 
 }t_webserv_errno;
 
@@ -28,6 +29,7 @@ static const char *g_webserv_errors[WEBSERV_ERRMAX] =
 	"Epoll_ctl error!",
 	"Error getting events!",
 	"Read error!",
+	"accept error!",
 };
 
 #endif

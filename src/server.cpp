@@ -76,6 +76,7 @@ void Server::handle_request(int client_fd)
 		request_string.append("\0");
 		Request request(client_fd, request_string.c_str(), server_block.config_map, this);
 		request.ParseRequest();
+		request.printMap();
 		request.HandleRequest(request_string);
     }
 }
@@ -86,11 +87,23 @@ void	Server::add_client(int epoll_fd)
 	Client	*client = new Client();
 
 	//accepts client through accept function and adds it to the epoll instance
-	client->acceptClient(server_socket_fd, epoll_fd);
+	int err = client->acceptClient(server_socket_fd, epoll_fd);
+	if (err == ACCEPT_ERROR)
+	{
+		delete client;
+		std::cout << "accept error" << std::endl;
+	}
+	else if (err == EPOLL_ERROR)
+	{
+		close(client->getFd());
+		delete client;
+		std::cout << "epoll error" << std::endl;
+	}
+	else
+		clientVec.push_back(client);
 
 	//add client to client vec
-	clientVec.push_back(client);
-	std::cout << "client accepted and put in vector of clients" << std::endl;
+	// std::cout << "client accepted and put in vector of clients" << std::endl;
 }
 
 void	Server::remove_client(int client_fd)
@@ -103,6 +116,7 @@ void	Server::remove_client(int client_fd)
 		if (client_fd == (*it)->getFd())
 		{
 			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
+			close((*it)->getFd());
 			delete (*it);
 			clientVec.erase(it);
 			std::cout << "client_deleted from vector" << std::endl;
@@ -140,6 +154,12 @@ void	Server::accept_connection()
 			{
 				//handle new connection, create client
 				add_client(epoll_fd);
+			}
+			else if (events[i].events & (EPOLLHUP | EPOLLERR))
+			{
+				//error or hangup, client needs to be dissconnected.
+				std::cout << "hang up or error" << std::endl;
+				remove_client(events[i].data.fd);
 			}
 			else if (events[i].events & EPOLLIN)
 			{
