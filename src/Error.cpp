@@ -10,4 +10,8 @@ std::string Request::getErrorPage(std::string filename)
 		buffer << file.rdbuf();
 		return buffer.str();
 	}
+	else
+	{
+		return "\0";
+	}
 }
