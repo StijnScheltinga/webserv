@@ -12,24 +12,3 @@ void Server::TransferConfig()
 
     std::cout << std::endl;
 }
-
-void Server::init_server()
-{   
-    TransferConfig();
-
-    max_connections = 3;
-    sock_addr.sin_family = AF_INET;
-    sock_addr.sin_port = htons(port);
-    sock_addr.sin_addr.s_addr = INADDR_ANY;
-    sock_addr_len = sizeof(sock_addr);
-}
-
-void Server::StartServer()
-{
-    init_server();
-    server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket_fd == -1)
-    {
-        exit_error(SOCK_FAIL, 0);
-    }
-}

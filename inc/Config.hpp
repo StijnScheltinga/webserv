@@ -5,11 +5,6 @@
 # include <fstream>
 # include <sstream>
 
-struct ServerBlock
-{
-	std::map<std::string, std::vector<std::string> > config_map;
-};
-
 class Config
 {
 	public:
@@ -28,6 +23,5 @@ class Config
 
 };
 
-ServerBlock ParseConfig(std::string file);
 
 #endif

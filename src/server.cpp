@@ -4,6 +4,20 @@
 #include <poll.h>
 #include <vector>
 
+void Server::InitializeServer()
+{
+	TransferConfig();
+    max_connections = 3;
+    sock_addr.sin_family = AF_INET;
+    sock_addr.sin_port = htons(port);
+    sock_addr.sin_addr.s_addr = INADDR_ANY;
+    sock_addr_len = sizeof(sock_addr);
+    server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket_fd == -1)
+        exit_error(SOCK_FAIL, 0);
+	ServerConfig = ;
+}
+
 int Server::listen_to_socket()
 {
     if (bind(server_socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
@@ -179,9 +193,9 @@ void	Server::accept_connection()
 
 Server::Server(const char *config_file)
 {
-    server_block = ParseConfig(config_file);
+    // server_block = ParseConfig(config_file);
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
-    StartServer();
+    InitializeServer();
 }
 
 Server::~Server()

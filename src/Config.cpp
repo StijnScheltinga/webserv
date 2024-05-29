@@ -5,7 +5,17 @@
 #include <map>
 #include "../inc/Config.hpp"
 
-ServerBlock ParseConfig(std::string file)
+Config::Config()
+{
+	std::cout << "Config constructor called" << std::endl;
+}
+
+Config::~Config()
+{
+	std::cout << "Config destructor called" << std::endl;
+}
+
+void Config::ParseConfig(std::string file)
 {
 	std::ifstream config_file(file);
 	std::string line;
@@ -19,7 +29,6 @@ ServerBlock ParseConfig(std::string file)
 				continue;
 			if (line.find('{') != std::string::npos)
 			{
-				ServerBlock block;
 				//block.config_map["ServerName"][0] = line.substr(0, line.find('{') - 1);
 				while (std::getline(config_file, line))
 				{
@@ -33,10 +42,10 @@ ServerBlock ParseConfig(std::string file)
 					std::string key, value;
 					ss >> key;
 					while (ss >> value)
-						block.config_map[key].push_back(value);
-					block.config_map[key].back().resize(block.config_map[key].back().size() - 1);
+						config_map[key].push_back(value);
+					config_map[key].back().resize(config_map[key].back().size() - 1);
 				}
-				return block;
+				return ;
 			}
 		}
 	}
