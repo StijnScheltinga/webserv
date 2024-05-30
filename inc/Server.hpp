@@ -26,10 +26,8 @@ class Server
 {
     public:
         Server();
-        Server(const char *config_file);
         ~Server();
 
-        void InitializeServer();
         void TransferConfig();
         void parse_config();
 
@@ -67,9 +65,9 @@ class Server
 
 		std::vector<writeRequest*> writeRequests;
 
-		const	Config&	ServerConfig;
+		const	Config*	config;
 
-        std::map<std::string, std::vector<std::string> > config_map;
+        std::map<std::string, std::string> config_map;
         std::string cgi_dir;
         std::string root;
         std::string ip;

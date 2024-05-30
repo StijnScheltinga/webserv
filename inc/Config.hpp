@@ -8,14 +8,13 @@
 class Config
 {
 	public:
-		Config();
+		Config(const char *configFile);
 		~Config();
-		void ParseConfig(std::string file);
-		void printConfig();
-		void printMap();
+		void ParseConfig(std::string serverBlock);
+		void printConfig() const;
 
 	private:
-		std::map<std::string, std::vector<std::string> > config_map;
+		
 		std::string listen;
 		std::string server_name;
 		std::string error_page;
