@@ -1,6 +1,4 @@
 #include "../inc/Parser.hpp"
-#include "../inc/Error.hpp"
-#include "../inc/Server.hpp"
 
 Parser::Parser(char *configPath) : configFilePath(configPath) {createConfigObjects();}
 
@@ -10,90 +8,127 @@ Parser::~Parser() {}
 //config class handles parsing of info inside Server block
 //Put config object in the configVector
 
-//dirty code!!
-void	Parser::copyServerBlock(std::ifstream &configStream, std::string &line, std::string &configContentString)
-{
-	while (std::getline(configStream, line))
-	{
-		line.erase(0, line.find_first_not_of("\t\r\n "));
-		line.erase(line.find_last_not_of("\t\r\n ") + 1);
-		if (line.empty() || line[0] == '#')
-			continue ;
-		size_t openingBracketPos = line.find('{');
-		size_t closingBracketPos = line.find('}');
-		//if opening bracket is found and closing bracket is not found
-		configContentString += line + "\n";
-		if (openingBracketPos != std::string::npos && closingBracketPos == std::string::npos)
-			copyServerBlock(configStream, line, configContentString);
-		else if (openingBracketPos != std::string::npos && closingBracketPos != std::string::npos)
-			continue ;
-		if (closingBracketPos != std::string::npos)
-			break ;
-	}
-}
-
-
-// std::string	Parser::copyServerBlock(std::ifstream &configStream, std::string &line)
+// void	Parser::copyServerBlock(std::istringstream &configStream, std::string &line, std::string &serverConfig)
 // {
-// 	std::string	configContentString;
-// 	int			indentLevel = 0;
 // 	while (std::getline(configStream, line))
 // 	{
-// 		line.erase(0, line.find_first_not_of("\t\r\n "));
-// 		line.erase(line.find_last_not_of("\t\r\n ") + 1);
-// 		if (line.empty() || line[0] == '#')
-// 			continue ;
 // 		size_t openingBracketPos = line.find('{');
 // 		size_t closingBracketPos = line.find('}');
-// 		configContentString += line + "\n";
-// 		//if opening bracket is found and closing bracket is not found, indentlevel++
+// 		//if opening bracket is found and closing bracket is not found
+// 		serverConfig += line + "\n";
 // 		if (openingBracketPos != std::string::npos && closingBracketPos == std::string::npos)
-// 			indentLevel++;
-// 		//if opening braket is found and closing bracket is found include whole string
+// 			copyServerBlock(configStream, line, serverConfig);
 // 		else if (openingBracketPos != std::string::npos && closingBracketPos != std::string::npos)
 // 			continue ;
 // 		if (closingBracketPos != std::string::npos)
-// 			indentLevel--;
-// 		if 
+// 			break ;
 // 	}
-// 	if (indentLevel != 0)
-// 		std::cout << "syntax error conf file" << std::endl;
-// 	return configContentString;
 // }
 
-void	Parser::createConfigObjects()
+
+//performs a syntax check and throws an error if syntax is not good
+//Will create a string without excess whitespace, comments or empty lines.
+//each line will be followed by a '\n'
+//actual syntax check will be implemented later since this is not necessary for a working webserv
+std::vector<std::string>	Parser::syntaxError()
 {
 	std::ifstream configStream(configFilePath);
 	if(!configStream.is_open() || !configStream.good())
 		exit(1);
 
+	std::vector<std::string>	configFileLines;
 	std::string line;
-	while(std::getline(configStream, line))
+	while (std::getline(configStream, line))
 	{
+		//remove whitespace
 		line.erase(0, line.find_first_not_of("\t\r\n "));
 		line.erase(line.find_last_not_of("\t\r\n ") + 1);
-		if (line.empty() || line[0] == '#')
+		
+		//remove comments
+		size_t commentPos = line.find('#');
+		if (commentPos != std::string::npos)
+			line = line.substr(0, commentPos);
+
+		if (line.empty())
 			continue ;
-		if (line.find("server") == 0)
+
+		configFileLines.push_back(line);
+	}
+	configStream.close();
+	return (configFileLines);
+}
+
+void	Parser::createConfigObjects()
+{
+	//check file for syntax errors, returns vector with all lines
+	std::vector<std::string> configFileLines = syntaxError();
+
+	// printConfigLines(configFileLines);
+
+	size_t begin = 0;
+	size_t end = 0;
+	size_t len = 0;
+	for (int i = 0; i != configFileLines.size(); ++i)
+	{
+		if (configFileLines[i].find("server") == 0)
 		{
-			std::string configContentString;
-			copyServerBlock(configStream, line, configContentString);
-			configContentString.erase(configContentString.find_last_of('}'));
-			std::cout << "new config: \n" << configContentString << std::endl;
+			begin = i;
+			len = lengthServerBlock(configFileLines, begin);
+			end = begin + len;
+
+			std::vector<std::string>	serverBlock(configFileLines.begin() + begin, configFileLines.begin() + end);
+			popUnwanted(serverBlock);
+
+			std::cout << "serverBlock: " << std::endl;
+			printConfigLines(serverBlock);
+			std::cout << "\n";
+
+			//adding server config to the config array 
+			Config	newConfig(serverBlock);
+			configVector.push_back(newConfig);
+		}
+		i += len;
+	}
+}
+
+int	Parser::lengthServerBlock(std::vector<std::string> configFileLines, int i)
+{
+	int	lengthServerBlock = 0;
+	int	indentLevel = 0;
+	for (; i != configFileLines.size(); i++)
+	{
+ 		size_t openingBracketPos = configFileLines[i].find('{');
+		size_t closingBracketPos = configFileLines[i].find('}');
+		if (openingBracketPos != std::string::npos)
+			indentLevel++;
+		if (closingBracketPos != std::string::npos)
+			indentLevel--;
+		if (indentLevel == 0 && lengthServerBlock != 0)
+			break;
+		lengthServerBlock++;
+	}
+	return lengthServerBlock;
+}
+
+void	Parser::popUnwanted(std::vector<std::string> &serverBlock)
+{
+	std::vector<std::string>::iterator it;
+	for (it = serverBlock.begin(); it != serverBlock.end(); it++)
+	{
+		std::string current = *it;;
+		if (current.find("server") == 0 || current.find("{") == 0 || current.find("}") == 0)
+		{
+			serverBlock.erase(it);
+			it--;
 		}
 	}
 }
 
-// void	Parser::getConfigFileString()
-// {
-// 	std::ifstream configFileStream(configFilePath);
-// 	if (!configFileStream.is_open())
-// 		exit(1);
-// 	std::ostringstream ss;
-// 	ss << configFileStream.rdbuf();
-// 	std::cout << ss.str() << std::endl;
-// 	configFileString = ss.str();
-// }
+void	Parser::printConfigLines(std::vector<std::string> configLines)
+{
+	for (int i = 0; i != configLines.size(); i++)
+		std::cout << configLines[i] << std::endl;
+}
 
 std::vector<Config>	Parser::getConfigVector() const
 {

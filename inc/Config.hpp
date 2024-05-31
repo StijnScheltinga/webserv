@@ -4,22 +4,19 @@
 # include <map>
 # include <fstream>
 # include <sstream>
+# include <vector>
 
 class Config
 {
 	public:
-		Config(const char *configFile);
+		Config(std::vector<std::string> serverBlock);
 		~Config();
-		void ParseConfig(std::string serverBlock);
 		void printConfig() const;
 
 	private:
-		
-		std::string listen;
-		std::string server_name;
-		std::string error_page;
-		std::string max_client_body_size;
+		void ParseConfig();
 
+		std::vector<std::string> serverBlock;
 };
 
 
