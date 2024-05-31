@@ -4,30 +4,20 @@
 # include <map>
 # include <fstream>
 # include <sstream>
-
-struct ServerBlock
-{
-	std::map<std::string, std::vector<std::string> > config_map;
-};
+# include <vector>
 
 class Config
 {
 	public:
-		Config();
+		Config(std::vector<std::string> serverBlock);
 		~Config();
-		void ParseConfig(std::string file);
-		void printConfig();
-		void printMap();
+		void printConfig() const;
 
 	private:
-		std::map<std::string, std::vector<std::string> > config_map;
-		std::string listen;
-		std::string server_name;
-		std::string error_page;
-		std::string max_client_body_size;
+		void ParseConfig();
 
+		std::vector<std::string> serverBlock;
 };
 
-ServerBlock ParseConfig(std::string file);
 
 #endif

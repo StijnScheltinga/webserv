@@ -26,13 +26,10 @@ class Server
 {
     public:
         Server();
-        Server(const char *config_file);
         ~Server();
 
-        void init_server();
         void TransferConfig();
         void parse_config();
-        void StartServer();
 
         int listen_to_socket();
         void accept_connection();
@@ -52,14 +49,11 @@ class Server
 
     private:
         int server_socket_fd;
-
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
-
         int port;
         int max_connections;
         unsigned int max_client_body_size;
-
         int	epoll_fd;
 
         std::vector<Client*> clientVec;
@@ -71,9 +65,9 @@ class Server
 
 		std::vector<writeRequest*> writeRequests;
 
-        ServerBlock server_block;
+		const	Config*	config;
 
-        std::map<std::string, std::vector<std::string> > config_map;
+        std::map<std::string, std::string> config_map;
         std::string cgi_dir;
         std::string root;
         std::string ip;
