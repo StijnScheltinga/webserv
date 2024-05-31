@@ -21,11 +21,9 @@ std::string Request::find_boundary(std::string &request_string)
 	return (request_string.substr(boundary_pos, boundary_end_pos - boundary_pos));
 }
 
-std::string Request::Handle_POST(std::string &request_string)
+void Request::UploadFile(std::string &request_string)
 {
-	std::string response = "POST request received\n";
-	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-	std::string filename = _config_map["UploadDir"][0] + "/" + find_file_name(request_string);
+		std::string filename = _config_map["UploadDir"][0] + "/" + find_file_name(request_string);
 	std::string boundary = "--" + find_boundary(request_string);
 	std::ofstream ofs(filename.c_str(), std::ios::binary);
 	if (!ofs.is_open())
@@ -44,5 +42,20 @@ std::string Request::Handle_POST(std::string &request_string)
 	std::string content = request_string.substr(content_start, content_end - content_start);
 	ofs.write(content.c_str(), content.size());
 	ofs.close();
+}
+std::string Request::Handle_POST(std::string &request_string)
+{
+	std::string response = "POST request received\n";
+	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+	if (request_map["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos)
+	{
+		// dont know what to do with the body yet
+		std::string body = request_string.substr(request_string.find("\r\n\r\n") + 4);
+		std::cout << body << std::endl;
+	}
+	else
+	{
+		UploadFile(request_string);
+	}
 	return response_string;
 }

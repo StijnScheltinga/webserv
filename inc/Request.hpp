@@ -24,6 +24,7 @@ class Request
 		std::string find_file_name(std::string &request_string);
 		std::string find_boundary(std::string &request_string);
 		std::string getErrorPage(std::string filename);
+		void		UploadFile(std::string &request_string);
 		void	printMap();
 		
 		bool isCgiRequest(std::string path);
