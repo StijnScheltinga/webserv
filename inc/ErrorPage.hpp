@@ -18,6 +18,7 @@ class ErrorPage
 		void		setPath(std::string path);
 		void 		addStatusCode(std::string statusCode);
 		std::vector<int> getStatusCodesVector();
+		void		printErrorPage() const;
 
 };
 

@@ -13,10 +13,10 @@ class Config
 	private:
 		void ParseConfig();
 
-		std::vector<std::string> serverBlock;
-		std::vector<std::string> server_name;
-		std::vector<Route> routes;
-		std::vector<ErrorPage> error_pages;
+		std::vector<std::string>	serverBlock;
+		std::vector<std::string>	server_name;
+		std::vector<Route>			routes;
+		std::vector<ErrorPage> 		error_pages;
 
 
 		int port;
@@ -32,7 +32,7 @@ class Config
 		void setPort(std::string port);
 		void setClientMaxBodySize(std::string clientMaxBodySize);
 		void setErrorPage(std::string errorPage);
-		void addRoute(std::string route);
+		void addRoute(std::vector<std::string>::iterator &it, std::vector<std::string>::const_iterator &end);
 		void setRoot(std::string root);
 
 		char getMaxClientBodySizeSuffix(std::string &clientMaxBodySize);

@@ -57,3 +57,12 @@ void ErrorPage::addStatusCode(std::string statusCode)
 	}
 	this->statusCodes.push_back(std::stoi(statusCode));
 }
+
+void ErrorPage::printErrorPage() const
+{
+	std::cout << "	Path: " << this->path << std::endl;
+	for (size_t i = 0; i < this->statusCodes.size(); i++)
+	{
+		std::cout << "		Status code: " << this->statusCodes[i] << std::endl;
+	}
+}

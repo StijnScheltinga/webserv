@@ -77,11 +77,6 @@ void	Parser::createConfigObjects()
 			end = begin + len;
 
 			std::vector<std::string>	serverBlock(configFileLines.begin() + begin, configFileLines.begin() + end);
-			popUnwanted(serverBlock);
-
-			std::cout << "serverBlock: " << std::endl;
-			printConfigLines(serverBlock);
-			std::cout << "\n";
 
 			//adding server config to the config array 
 			Config	newConfig(serverBlock);
@@ -108,20 +103,6 @@ int	Parser::lengthServerBlock(std::vector<std::string> configFileLines, int i)
 		lengthServerBlock++;
 	}
 	return lengthServerBlock;
-}
-
-void	Parser::popUnwanted(std::vector<std::string> &serverBlock)
-{
-	std::vector<std::string>::iterator it;
-	for (it = serverBlock.begin(); it != serverBlock.end(); it++)
-	{
-		std::string current = *it;;
-		if (current.find("server") == 0 || current.find("{") == 0 || current.find("}") == 0)
-		{
-			serverBlock.erase(it);
-			it--;
-		}
-	}
 }
 
 void	Parser::printConfigLines(std::vector<std::string> configLines)

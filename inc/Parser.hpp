@@ -14,7 +14,6 @@ class Parser
 		void						getConfigFileString();
 		int							lengthServerBlock(std::vector<std::string> configFileLines, int i);
 		void						printConfigLines(std::vector<std::string> configLines);
-		void						popUnwanted(std::vector<std::string> &serverBlock);
 		std::vector<std::string>	syntaxError();
 
 	public:
