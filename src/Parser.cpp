@@ -1,42 +1,67 @@
 #include "../inc/Parser.hpp"
+#include "../inc/Error.hpp"
 
 Parser::Parser(char *configPath) : configFilePath(configPath) {createConfigObjects();}
 
 Parser::~Parser() {}
 
-//call Config constructor for every server block
-//config class handles parsing of info inside Server block
-//Put config object in the configVector
+//call Config constructor for every server block, put config object in the configVector
+void	Parser::createConfigObjects()
+{
+	//check file for syntax errors, returns vector with all lines
+	std::vector<std::string> configFileLines = formatFile();
 
-// void	Parser::copyServerBlock(std::istringstream &configStream, std::string &line, std::string &serverConfig)
-// {
-// 	while (std::getline(configStream, line))
-// 	{
-// 		size_t openingBracketPos = line.find('{');
-// 		size_t closingBracketPos = line.find('}');
-// 		//if opening bracket is found and closing bracket is not found
-// 		serverConfig += line + "\n";
-// 		if (openingBracketPos != std::string::npos && closingBracketPos == std::string::npos)
-// 			copyServerBlock(configStream, line, serverConfig);
-// 		else if (openingBracketPos != std::string::npos && closingBracketPos != std::string::npos)
-// 			continue ;
-// 		if (closingBracketPos != std::string::npos)
-// 			break ;
-// 	}
-// }
+	// printConfigLines(configFileLines);
 
+	size_t begin = 0;
+	size_t end = 0;
+	size_t len = 0;
+	for (int i = 0; i != configFileLines.size(); ++i)
+	{
+		//if server is found and and there is nothing behind "server"
+		if (configFileLines[i].find("server") == 0 && configFileLines[i].length() == 6)
+		{
+			begin = i;
+			len = lengthServerBlock(configFileLines, begin);
+			end = begin + len;
+
+			// std::cout << "begin: " << begin << ", len: " << len << ", end: " << end << std::endl;
+
+			std::vector<std::string>	serverBlock(configFileLines.begin() + begin + 2, configFileLines.begin() + end);
+
+			std::cout << "\nserver block:" << std::endl;
+			printConfigLines(serverBlock);
+			std::cout << "\n";
+			// std::cout << "serverBlock: " << std::endl;
+			// printConfigLines(serverBlock);
+			// std::cout << "\n";
+
+			//adding server config to the config array 
+
+			// Config	newConfig(serverBlock);
+			// configVector.push_back(newConfig);
+		}
+		//if server is found and there is something behind server
+		else if (configFileLines[i].find("server") != std::string::npos)
+		{
+			std::cout << "a" << std::endl;
+			exitError(SYNTAX_ERROR);
+		}
+		//go to next server block
+		i += len;
+	}
+	// check if config is empty if so exitError()
+}
 
 //performs a syntax check and throws an error if syntax is not good
-//Will create a string without excess whitespace, comments or empty lines.
-//each line will be followed by a '\n'
-//actual syntax check will be implemented later since this is not necessary for a working webserv
-std::vector<std::string>	Parser::syntaxError()
+//Will create a string without excess whitespace, comments or empty lines, each line will be followed by a '\n'
+std::vector<std::string>	Parser::formatFile()
 {
 	std::ifstream configStream(configFilePath);
 	if(!configStream.is_open() || !configStream.good())
 		exit(1);
 
-	std::vector<std::string>	configFileLines;
+	std::vector<std::string>	configFile;
 	std::string line;
 	while (std::getline(configStream, line))
 	{
@@ -52,57 +77,70 @@ std::vector<std::string>	Parser::syntaxError()
 		if (line.empty())
 			continue ;
 
-		configFileLines.push_back(line);
+		configFile.push_back(line);
 	}
+	printConfigLines(configFile);
+	checkBrackets(configFile);
 	configStream.close();
-	return (configFileLines);
-}
-
-void	Parser::createConfigObjects()
-{
-	//check file for syntax errors, returns vector with all lines
-	std::vector<std::string> configFileLines = syntaxError();
-
-	// printConfigLines(configFileLines);
-
-	size_t begin = 0;
-	size_t end = 0;
-	size_t len = 0;
-	for (int i = 0; i != configFileLines.size(); ++i)
-	{
-		if (configFileLines[i].find("server") == 0)
-		{
-			begin = i;
-			len = lengthServerBlock(configFileLines, begin);
-			end = begin + len;
-
-			std::vector<std::string>	serverBlock(configFileLines.begin() + begin, configFileLines.begin() + end);
-
-			//adding server config to the config array 
-			Config	newConfig(serverBlock);
-			configVector.push_back(newConfig);
-		}
-		i += len;
-	}
+	return (configFile);
 }
 
 int	Parser::lengthServerBlock(std::vector<std::string> configFileLines, int i)
 {
-	int	lengthServerBlock = 0;
-	int	indentLevel = 0;
+	int begin = 0;
+	int end = 0;
+	int indentLevel = 0;
+	std::string	line;
+
+	begin = i;
+	i++;
+	//if there is no '{' after the server line or there is something behind the '{', syntax_error
+	if (configFileLines[i].find("{") != 0 || configFileLines[i].length() != 1)
+		exitError(SYNTAX_ERROR);
 	for (; i != configFileLines.size(); i++)
 	{
- 		size_t openingBracketPos = configFileLines[i].find('{');
-		size_t closingBracketPos = configFileLines[i].find('}');
-		if (openingBracketPos != std::string::npos)
-			indentLevel++;
-		if (closingBracketPos != std::string::npos)
-			indentLevel--;
-		if (indentLevel == 0 && lengthServerBlock != 0)
-			break;
-		lengthServerBlock++;
+		line = configFileLines[i];
+		for (int j = 0; line[j]; j++)
+		{
+			if (line[j] == '{')
+				indentLevel++;
+			else if (line[j] == '}')
+				indentLevel--;
+		}
+		//if last '}' of serverBlock is found and there is nothing before or behind it serverBlock is completed
+		if (indentLevel == 0 && (line.find("}")) == 0 && line.length() == 1)
+			return (i - begin);
+		else if (indentLevel == 0)
+			exitError(SYNTAX_ERROR);
 	}
-	return lengthServerBlock;
+	//no closing bracket found
+	exitError(SYNTAX_ERROR);
+	return (1);
+}
+
+//checks if there are to many opening or closing brackets
+void	Parser::checkBrackets(std::vector<std::string> configFile)
+{
+	std::string							line;
+	std::vector<std::string>::iterator	it;
+	int									indentLevel = 0;
+
+	for (it = configFile.begin(); it != configFile.end(); it++)
+	{
+		line = *it;
+		for (int i = 0; line[i]; i++)
+		{
+			if (line[i] == '{')
+				indentLevel++;
+			else if (line[i] == '}')
+				indentLevel--;
+			//indentLevel should not be under 0 since that means there were more closing brackets then opening
+			if (indentLevel < 0)
+				exitError(SYNTAX_ERROR);
+		}
+	}
+	if (indentLevel != 0)
+		exitError(SYNTAX_ERROR);
 }
 
 void	Parser::printConfigLines(std::vector<std::string> configLines)

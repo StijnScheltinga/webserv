@@ -2,6 +2,7 @@
 #include "../inc/Request.hpp"
 #include "../inc/Config.hpp"
 #include <algorithm>
+#include "../inc/Error.hpp"
 #include <poll.h>
 #include <vector>
 #include <cstring>
@@ -146,7 +147,7 @@ void	Server::accept_connection()
 {
 	epoll_fd = epoll_create1(0);
 	if (epoll_fd == -1)
-		exit_error(EPOLL_ERROR, 0);
+		exitError(EPOLL_ERROR);
 
 	//only EPOLLIN for connecting with users
 	for (size_t i = 0; i < serverFds.size(); i++)
@@ -162,7 +163,7 @@ void	Server::accept_connection()
 		struct epoll_event	events[MAX_EVENTS];
 		int n_events = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (n_events == -1)
-			exit_error(EVENT_ERROR, 0);
+			exitError(EVENT_ERROR);
 
 		for (int i = 0; i != n_events; i++)
 		{
