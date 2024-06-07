@@ -22,6 +22,7 @@ class Config
 		int port;
 		std::string root;
 		size_t client_max_body_size;
+		int	serverFd;
 
 	public:
 		Config(){;};
@@ -34,6 +35,8 @@ class Config
 		void setErrorPage(std::string errorPage);
 		void addRoute(std::vector<std::string>::iterator &it, std::vector<std::string>::const_iterator &end);
 		void setRoot(std::string root);
+		void setServerFd(int fd);
+		int getServerFd();
 
 		char getMaxClientBodySizeSuffix(std::string &clientMaxBodySize);
 

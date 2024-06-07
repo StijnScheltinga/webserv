@@ -10,6 +10,7 @@ Client::~Client() { std::cout << "client destructor called" << std::endl; }
 
 int	Client::acceptClient(int server_socket_fd, int epoll_fd)
 {
+	setServerFd(server_socket_fd);
 	client_fd = accept(server_socket_fd, (sockaddr *)&client_addr, &addr_len);
 	if (client_fd == -1)
 		return ACCEPT_ERROR;
@@ -21,7 +22,17 @@ int	Client::acceptClient(int server_socket_fd, int epoll_fd)
 	return 0;
 }
 
-int	Client::getFd() const
+void	Client::setServerFd(int fd)
+{
+	this->serverFd = fd;
+}
+
+int	Client::getClientFd() const
 {
 	return (client_fd);
+}
+
+int Client::getServerFd()
+{
+	return this->serverFd;
 }

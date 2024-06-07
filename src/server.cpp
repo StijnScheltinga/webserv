@@ -13,7 +13,7 @@ int Server::listen_to_socket()
 	int servernum = serverFds.size();
 	if (serverFd == -1)
 	{
-		exit_error(SOCK_FAIL, 0);
+		exitError(SOCK_FAIL);
 	}
 	std::memset(&sock_addr, 0, sizeof(sock_addr));
 	sock_addr.sin_family = AF_INET;
@@ -24,12 +24,12 @@ int Server::listen_to_socket()
     if (bind(serverFd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
         close(serverFd);
-        exit_error(BIND_FAIL, 0);
+        exitError(BIND_FAIL);
     }
     if (listen(serverFd, max_connections) < 0)
     {
         close(serverFd);
-        exit_error(LISTEN_FAIL, 0);
+        exitError(LISTEN_FAIL);
     }
     std::ostringstream ss;
     ss <<  "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
@@ -89,9 +89,15 @@ void Server::handle_request(int client_fd)
 			valread = read(client_fd, buffer, 1024);
 		}
 		request_string.append("\0");
-		Request request(client_fd, request_string.c_str(), this);
-		// Route *route = matchRoute(&)
-		request.HandleRequest(request_string);
+
+		Client	*client = getClientPtr(client_fd);
+		if (!client)
+			return ;
+		Config	*config = getCorrectConfig(client);
+		if (!config)
+			return;
+
+		Request(client, config, request_string.c_str());
     }
 }
 
@@ -109,7 +115,7 @@ void	Server::add_client(int epoll_fd, int event_fd)
 	}
 	else if (err == EPOLL_ERROR)
 	{
-		close(client->getFd());
+		close(client->getClientFd());
 		delete client;
 		std::cout << "epoll error" << std::endl;
 	}
@@ -127,10 +133,10 @@ void	Server::remove_client(int client_fd)
 	for (it = clientVec.begin(); it != clientVec.end(); it++)
 	{
 		//if fd of request to disconnect is same as client in arr, delete
-		if (client_fd == (*it)->getFd())
+		if (client_fd == (*it)->getClientFd())
 		{
 			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
-			close((*it)->getFd());
+			close((*it)->getClientFd());
 			delete (*it);
 			clientVec.erase(it);
 			std::cout << "client_deleted from vector" << std::endl;
@@ -156,7 +162,7 @@ void	Server::accept_connection()
 		event_server.events = EPOLLIN;
 		event_server.data.fd = serverFds[i];
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverFds[i], &event_server) == -1)
-			exit_error(EPOLL_CTL_ERROR, 0);
+			exitError(EPOLL_CTL_ERROR);
 	}
 	while (true)
 	{
@@ -196,6 +202,29 @@ void	Server::accept_connection()
 	}
 }
 
+Client	*Server::getClientPtr(int clientFd)
+{
+	//get client object corresponding to client fd
+	for (std::vector<Client*>::iterator it = clientVec.begin(); it != clientVec.end(); it++)
+	{
+		Client	*client	 = *it;
+		if (client->getClientFd() == clientFd)
+			return client;
+	}
+	return NULL;
+}
+
+Config *Server::getCorrectConfig(Client *client)
+{
+	for (std::vector<Config>::iterator it = configs.begin(); it != configs.end(); it++)
+	{
+		Config config_it = *it;
+		if (config_it.getServerFd() == client->getServerFd())
+			return (&(*it));
+	}
+	return NULL;
+}
+
 Server::Server(std::vector<Config> &configVector) : configs(configVector)
 {
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
@@ -203,6 +232,7 @@ Server::Server(std::vector<Config> &configVector) : configs(configVector)
 	for (size_t i = 0; i < configVector.size(); i++)
 	{
 		int serverFd = listen_to_socket();
+		configVector[i].setServerFd(serverFd);
 		serverFds.push_back(serverFd);
 	}
 	accept_connection();

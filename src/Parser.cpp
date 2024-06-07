@@ -25,21 +25,16 @@ void	Parser::createConfigObjects()
 			len = lengthServerBlock(configFileLines, begin);
 			end = begin + len;
 
-			// std::cout << "begin: " << begin << ", len: " << len << ", end: " << end << std::endl;
-
 			std::vector<std::string>	serverBlock(configFileLines.begin() + begin + 2, configFileLines.begin() + end);
 
-			std::cout << "\nserver block:" << std::endl;
-			printConfigLines(serverBlock);
-			std::cout << "\n";
-			// std::cout << "serverBlock: " << std::endl;
+			// std::cout << "\nserver block:" << std::endl;
 			// printConfigLines(serverBlock);
 			// std::cout << "\n";
 
 			//adding server config to the config array 
 
-			// Config	newConfig(serverBlock);
-			// configVector.push_back(newConfig);
+			Config	newConfig(serverBlock);
+			configVector.push_back(newConfig);
 		}
 		//if server is found and there is something behind server
 		else if (configFileLines[i].find("server") != std::string::npos)

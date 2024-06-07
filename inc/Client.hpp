@@ -12,11 +12,14 @@ class Client
 		struct sockaddr_in	client_addr;
 		socklen_t 			addr_len;
 		struct epoll_event	event;
+		int					serverFd;
 	public:
 		Client();
 		~Client();
 		int	acceptClient(int server_socket_fd, int epoll_fd);
-		int		getFd() const;
+		int		getClientFd() const;
+		void	setServerFd(int fd);
+		int		getServerFd();
 };
 
 #endif

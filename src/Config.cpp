@@ -66,12 +66,11 @@ void Config::ParseConfig()
 		value.erase(0, value.find_first_not_of(" \t\n\r\f\v"));
 		if (configHandlers.find(key) != configHandlers.end())
 			(this->*configHandlers[key])(value);
-		// uncomment this else block when I only get the content of the server_block
-		// else
-		// {
-		// 	std::cout << "Unknown directive: \"" << key << "\" in server block" << std::endl;
-		// 	exit(1);
-		// }
+		else
+		{
+			std::cout << "Unknown directive: \"" << key << "\" in server block" << std::endl;
+			exit(1);
+		}
 	}
 	printConfig();
 }
@@ -171,11 +170,20 @@ void Config::setRoot(std::string root)
 	this->root = root;
 }
 
+void Config::setServerFd(int fd)
+{
+	this->serverFd = fd;
+}
+
 int Config::getPort() const
 {
 	return port;
 }
 
+int Config::getServerFd()
+{
+	return this->serverFd;
+}
 
 void Config::printConfig() const
 {
@@ -193,4 +201,9 @@ void Config::printConfig() const
 	for (size_t i = 0; i < routes.size(); i++)
 		routes[i].printRoute();
 	std::cout << std::endl;
+}
+
+std::string	Config::getRoot() const
+{
+	return this->root;
 }

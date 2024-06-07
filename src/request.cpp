@@ -1,17 +1,19 @@
 #include "../inc/Request.hpp"
 #include "../inc/ServerException.hpp"
+#include "../inc/Config.hpp"
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
 #include <fstream>
 
-Request::Request(int client_fd, const char *buffer, Server *serverInstance)
+Request::Request(Client *client, Config *config, const char *requestString)
 {
-	_client_fd = client_fd;
-	_buffer = buffer;
-	_serverInstance = serverInstance;
+	this->client = client;
+	this->config = config;
+	this->requestString = requestString;
 	ParseRequest();
 	printMap();
+	HandleRequest();
 }
 
 Request::~Request() {}
@@ -19,7 +21,7 @@ Request::~Request() {}
 void Request::ParseRequest()
 {
 	//First line always has the method, path and version.
-	std::istringstream ss(_buffer);
+	std::istringstream ss(requestString);
 	std::string method, path, version;
 	ss >> method >> path >> version;
 	request_map["Method"] = method;
@@ -41,32 +43,33 @@ void Request::ParseRequest()
 	}
 }
 
-/*for get method instead of writing directly WITHOUT poll, 
-make a write request first and then check for availability to write to client_fd*/
-void Request::HandleRequest(std::string &request_string)
+
+//make a write request first and then check for availability to write to client_fd
+void Request::HandleRequest()
 {
 	try
 	{
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
-		if (isCgiRequest(request_map["Path"]))
-			execute_cgi(request_map["Path"]);
-		else if (request_map["Method"] == "GET")
+		// if (isCgiRequest(request_map["Path"]))
+		// 	execute_cgi(request_map["Path"]);
+		if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET();
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			//create write request
 			_serverInstance->create_write_request(response_header, _client_fd);
 		}
-		else if (request_map["Method"] == "POST")
-		{
-			std::string response = Handle_POST(request_string);
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			_serverInstance->create_write_request(response, _client_fd);
-		}
-		else if (request_map["Method"] == "DELETE")
-		{
-			Handle_DELETE();
-		}
+		// else if (request_map["Method"] == "POST")
+		// {
+		// 	std::string postRequestString(requestString);
+		// 	std::string response = Handle_POST(postRequestString);
+		// 	std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		// 	_serverInstance->create_write_request(response, _client_fd);
+		// }
+		// else if (request_map["Method"] == "DELETE")
+		// {
+		// 	Handle_DELETE();
+		// }
 	}
 	catch (const BadRequestException &e)
 	{
@@ -99,10 +102,30 @@ void	Request::printMap(void)
 	std::cout << "---end request---" << std::endl;
 }
 
-std::string Request::getErrorPage(std::string filename)
+// std::string Request::getErrorPage(std::string filename)
+// {
+// 	std::string path = config->
+// 	std::ifstream file(path);
+// 	if (file.is_open() && file.good())
+// 	{
+// 		std::stringstream buffer;
+// 		buffer << file.rdbuf();
+// 		return buffer.str();
+// 	}
+// 	else
+// 	{
+// 		return "\0";
+// 	}
+// }
+
+std::string Request::Handle_GET()
 {
-	std::string path = _config_map["ErrorPages"][0] + "/" + filename;
-	std::ifstream file(path);
+	std::string	fileName(request_map["Path"]);
+
+	if (fileName == "/")
+		fileName += "index.html";
+	std::string path = config->getRoot() + fileName;
+	std::ifstream	file(path);
 	if (file.is_open() && file.good())
 	{
 		std::stringstream buffer;
@@ -111,6 +134,7 @@ std::string Request::getErrorPage(std::string filename)
 	}
 	else
 	{
-		return "\0";
+		std::cout << "Throwing exception\n";
+		throw NotFoundException();
 	}
 }

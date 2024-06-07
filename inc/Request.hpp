@@ -14,10 +14,10 @@ const std::string CONTENT_LENGTH = "Content-Length: ";
 class Request
 {
 	public:
-		Request(int client_fd, const char *buffer, Server *serverInstance);
+		Request(Client *client, Config *config, const char *requestString);
 		~Request();
 		void ParseRequest();
-		void HandleRequest(std::string &request_string);
+		void HandleRequest();
 		std::string Handle_GET();
 		std::string Handle_POST(std::string &request_string);
 		std::string Handle_DELETE();
@@ -30,7 +30,9 @@ class Request
 		void execute_cgi(std::string path);
 
 	private:
-		const char *_buffer;
+		Client *client;
+		Config *config;
+		const char *requestString;
 		int _client_fd;
 		std::map<std::string, std::string> request_map;
 		std::string _http_version;

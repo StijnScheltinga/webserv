@@ -40,6 +40,7 @@ class Server
 		void process_write_request(int client_fd);
         void readRequest();
         void sendResponse();
+		
 
         // int set_fds(fd_set *set, std::vector<int> client_fds);
         // void    add_socket_to_vec(int client_fd, std::vector<int> &client_fds);
@@ -73,6 +74,8 @@ class Server
         std::vector<std::string> cgi_extensions;
         std::vector<std::string> server_name;
         
+		Client	*getClientPtr(int clientFd);
+		Config	*getCorrectConfig(Client *client);
 };
 
 
