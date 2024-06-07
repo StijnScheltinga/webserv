@@ -90,14 +90,16 @@ void Server::handle_request(int client_fd)
 		}
 		request_string.append("\0");
 
+		//get Client object related to the request
 		Client	*client = getClientPtr(client_fd);
 		if (!client)
 			return ;
+		//get correct server related to client
 		Config	*config = getCorrectConfig(client);
 		if (!config)
 			return;
 
-		Request(client, config, request_string.c_str());
+		Request(client, config, request_string.c_str(), this);
     }
 }
 

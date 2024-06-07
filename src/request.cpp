@@ -6,11 +6,12 @@
 #include <fcntl.h>
 #include <fstream>
 
-Request::Request(Client *client, Config *config, const char *requestString)
+Request::Request(Client *client, Config *config, const char *requestString, Server	*serverInstance)
 {
 	this->client = client;
 	this->config = config;
 	this->requestString = requestString;
+	this->serverInstance = serverInstance;
 	ParseRequest();
 	printMap();
 	HandleRequest();
@@ -57,7 +58,7 @@ void Request::HandleRequest()
 			std::string response = Handle_GET();
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			//create write request
-			_serverInstance->create_write_request(response_header, _client_fd);
+			serverInstance->create_write_request(response_header, client->getClientFd());
 		}
 		// else if (request_map["Method"] == "POST")
 		// {
@@ -71,24 +72,12 @@ void Request::HandleRequest()
 		// 	Handle_DELETE();
 		// }
 	}
-	catch (const BadRequestException &e)
+	catch (const ServerException &e)
 	{
 		std::cerr << RED << e.what() << RESET << std::endl;
-		std::string response = getErrorPage("400.html");
+		std::string response = getErrorPage(e);
 		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, _client_fd);
-	}
-	catch (const NotFoundException &e){
-		std::cerr << RED <<  e.what() << RESET <<  std::endl;
-		std::string response = getErrorPage("404.html");
-		std::string response_header = HTTP_NOT_FOUND + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, _client_fd);
-	}
-	catch (const InternalServerErrorException &e){
-		std::cerr << RED << e.what() << RESET << std::endl;
-		std::string response = getErrorPage("500.html");
-		std::string response_header = SERVER_ERROR + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, _client_fd);
+		serverInstance->create_write_request(response_header, client->getClientFd());
 	}
 }
 
@@ -102,21 +91,10 @@ void	Request::printMap(void)
 	std::cout << "---end request---" << std::endl;
 }
 
-// std::string Request::getErrorPage(std::string filename)
-// {
-// 	std::string path = config->
-// 	std::ifstream file(path);
-// 	if (file.is_open() && file.good())
-// 	{
-// 		std::stringstream buffer;
-// 		buffer << file.rdbuf();
-// 		return buffer.str();
-// 	}
-// 	else
-// 	{
-// 		return "\0";
-// 	}
-// }
+std::string Request::getErrorPage(const ServerException &e)
+{
+	if (dynamic_cast<)
+}
 
 std::string Request::Handle_GET()
 {

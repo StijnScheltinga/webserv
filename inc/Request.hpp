@@ -14,7 +14,7 @@ const std::string CONTENT_LENGTH = "Content-Length: ";
 class Request
 {
 	public:
-		Request(Client *client, Config *config, const char *requestString);
+		Request(Client *client, Config *config, const char *requestString, Server *serverInstance);
 		~Request();
 		void ParseRequest();
 		void HandleRequest();
@@ -33,10 +33,9 @@ class Request
 		Client *client;
 		Config *config;
 		const char *requestString;
-		int _client_fd;
 		std::map<std::string, std::string> request_map;
 		std::string _http_version;
-		Server	*_serverInstance;
+		Server	*serverInstance;
 };
 
 #endif
