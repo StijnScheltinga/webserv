@@ -1,6 +1,7 @@
 #include "../inc/Server.hpp"
 #include "../inc/Request.hpp"
 #include "../inc/Config.hpp"
+#include "../inc/Error.hpp"
 #include <poll.h>
 #include <vector>
 
@@ -9,12 +10,12 @@ int Server::listen_to_socket()
     if (bind(server_socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
         close(server_socket_fd);
-        exit_error(SOCK_FAIL, 0);
+        exitError(SOCK_FAIL);
     }
     if (listen(server_socket_fd, max_connections) < 0)
     {
         close(server_socket_fd);
-        exit_error(BIND_FAIL, 0);
+        exitError(BIND_FAIL);
     }
     std::ostringstream ss;
     ss <<  "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
@@ -133,20 +134,20 @@ void	Server::accept_connection()
 {
 	epoll_fd = epoll_create1(0);
 	if (epoll_fd == -1)
-		exit_error(EPOLL_ERROR, 0);
+		exitError(EPOLL_ERROR);
 
 	struct epoll_event	event_server;
 	//only EPOLLIN for connecting with users
 	event_server.events = EPOLLIN;
 	event_server.data.fd = server_socket_fd;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
-		exit_error(EPOLL_CTL_ERROR, 0);
+		exitError(EPOLL_CTL_ERROR);
 	while (true)
 	{
 		struct epoll_event	events[MAX_EVENTS];
 		int n_events = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (n_events == -1)
-			exit_error(EVENT_ERROR, 0);
+			exitError(EVENT_ERROR);
 
 		for (int i = 0; i != n_events; i++)
 		{
@@ -180,19 +181,6 @@ void	Server::accept_connection()
 Server::Server()
 {
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
-	
-
-
-	// TransferConfig();
-    // max_connections = 3;
-    // sock_addr.sin_family = AF_INET;
-    // sock_addr.sin_port = htons(port);
-    // sock_addr.sin_addr.s_addr = INADDR_ANY;
-    // sock_addr_len = sizeof(sock_addr);
-    // server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    // if (server_socket_fd == -1)
-    //     exit_error(SOCK_FAIL, 0);
-
 }
 
 Server::~Server()
