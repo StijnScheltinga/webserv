@@ -1,17 +1,8 @@
-#include "../inc/Request.hpp"
+#include "../inc/Error.hpp"
 
-std::string Request::getErrorPage(std::string filename)
+void	exitError(int webservErrno)
 {
-	std::string path = _config_map["ErrorPages"][0] + "/" + filename;
-	std::ifstream file(path);
-	if (file.is_open() && file.good())
-	{
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		return buffer.str();
-	}
-	else
-	{
-		return "\0";
-	}
+	std::cout << g_webserv_errors[webservErrno] << std::endl;
+	exit(webservErrno);
 }
+

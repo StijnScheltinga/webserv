@@ -41,9 +41,6 @@ class Server
         void readRequest();
         void sendResponse();
 
-        
-        int exit_error(int exit_code, int line_num);
-
         // int set_fds(fd_set *set, std::vector<int> client_fds);
         // void    add_socket_to_vec(int client_fd, std::vector<int> &client_fds);
 

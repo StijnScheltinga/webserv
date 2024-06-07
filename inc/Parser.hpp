@@ -10,12 +10,16 @@ class Parser
 	private:
 		char						*configFilePath;
 		std::vector<Config> 		configVector;
+
 		void						createConfigObjects();
 		void						getConfigFileString();
 		int							lengthServerBlock(std::vector<std::string> configFileLines, int i);
 		void						printConfigLines(std::vector<std::string> configLines);
 		void						popUnwanted(std::vector<std::string> &serverBlock);
-		std::vector<std::string>	syntaxError();
+		std::vector<std::string>	formatFile();
+
+		void						checkBrackets(std::vector<std::string> configFile);
+
 
 	public:
 		Parser(char *configFilePath);
