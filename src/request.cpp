@@ -5,12 +5,13 @@
 #include <fcntl.h>
 #include <fstream>
 
-Request::Request(int client_fd, const char *buffer, std::map<std::string, std::vector<std::string> > config_map, Server *serverInstance)
+Request::Request(int client_fd, const char *buffer, Server *serverInstance)
 {
 	_client_fd = client_fd;
 	_buffer = buffer;
-	_config_map = config_map;
 	_serverInstance = serverInstance;
+	ParseRequest();
+	printMap();
 }
 
 Request::~Request() {}

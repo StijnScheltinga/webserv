@@ -25,7 +25,7 @@
 class Server
 {
     public:
-        Server();
+        Server(std::vector<Config> &configs);
         ~Server();
 
         void TransferConfig();
@@ -33,7 +33,7 @@ class Server
 
         int listen_to_socket();
         void accept_connection();
-		void add_client(int epoll_fd);
+		void add_client(int epoll_fd, int event_fd);
 		void remove_client(int client_fd);
         void handle_request(int client_fd);
 		void create_write_request(const std::string& data, int client_fd);
@@ -45,7 +45,6 @@ class Server
         // void    add_socket_to_vec(int client_fd, std::vector<int> &client_fds);
 
     private:
-        int server_socket_fd;
         struct sockaddr_in sock_addr;
         socklen_t sock_addr_len;
         int port;
@@ -62,7 +61,8 @@ class Server
 
 		std::vector<writeRequest*> writeRequests;
 
-		const	Config*	config;
+		std::vector<Config> &configs;
+        std::vector<int> serverFds;
 
         std::map<std::string, std::string> config_map;
         std::string cgi_dir;
