@@ -35,9 +35,6 @@ class Route
 		// void setCgiConfig(CgiConfig cgi_config);
 
 		void printRoute() const;
-
-		Route *matchRoute(std::vector<Route> &routes, std::string path, std::string method);
-
 };
 
 #endif

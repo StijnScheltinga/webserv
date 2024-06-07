@@ -97,7 +97,7 @@ void Server::handle_request(int client_fd)
 		if (!config)
 			return;
 
-		Request(client, config, request_string.c_str());
+		Request(client, config, request_string.c_str(), this);
     }
 }
 

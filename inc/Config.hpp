@@ -1,5 +1,6 @@
 #ifndef CONFIG_HPP
 # define CONFIG_HPP
+
 # include <iostream>
 # include <map>
 # include <fstream>
@@ -37,13 +38,13 @@ class Config
 		void setRoot(std::string root);
 		void setServerFd(int fd);
 		int getServerFd();
+		std::vector<Route> getRoutes();
 
 		char getMaxClientBodySizeSuffix(std::string &clientMaxBodySize);
 
 		int getPort() const;
 		std::string getRoot() const;
 		size_t getClientMaxBodySize() const;
-		std::vector<Route> getRoutes() const;
 		std::vector<ErrorPage> getErrorPages() const;
 
 	std::map<std::string, void (Config::*)(std::string)> configHandlers = 
@@ -54,6 +55,7 @@ class Config
 		{"error_page", &Config::setErrorPage},
 		{"root", &Config::setRoot},
 	};
+	std::vector<std::string> cgiExtensions = {".py", ".cgi"};
 };
 
 

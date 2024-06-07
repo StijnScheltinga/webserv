@@ -1,3 +1,6 @@
+#ifndef SERVEREXCEPTION_HPP
+# define SERVEREXCEPTION_HPP
+
 class ServerException : public std::exception
 {
 	public:
@@ -29,3 +32,5 @@ class InternalServerErrorException : public ServerException
 	public:
 		InternalServerErrorException() : ServerException("500 Internal server error") {}
 };
+
+#endif

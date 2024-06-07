@@ -8,7 +8,7 @@ ErrorPage::ErrorPage(std::string errorPage)
 	std::string 		token;
 	while (ss >> token)
 	{
-		if (token[0] == '/')
+		if (token[0] == '/' || !isdigit(token[0]))
 		{
 			this->setPath(token);
 			break ;
@@ -41,6 +41,7 @@ std::vector<int> ErrorPage::getStatusCodesVector()
 
 void ErrorPage::addStatusCode(std::string statusCode)
 {
+	std::cout << "status code: " << statusCode << std::endl;
 	size_t length = statusCode.length();
 	if (length == 0)
 	{

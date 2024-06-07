@@ -25,6 +25,7 @@ void Config::addRoute(std::vector<std::string>::iterator &it, std::vector<std::s
 	while (it != end)
 	{
 		std::string line = *it;
+		std::cout << "line: " << line << std::endl;
 		if (line.find('}') != std::string::npos)
 			break ;
 		std::istringstream ss(line);
@@ -58,6 +59,7 @@ void Config::ParseConfig()
 		{
 			std::vector<std::string>::const_iterator endline = serverBlock.end();
 			addRoute(it, endline);
+			continue ;
 		}
 		std::string key, value;
 		std::istringstream iss(line);
@@ -185,6 +187,21 @@ int Config::getServerFd()
 	return this->serverFd;
 }
 
+std::string	Config::getRoot() const
+{
+	return this->root;
+}
+
+std::vector<ErrorPage> Config::getErrorPages() const
+{
+	return error_pages;
+}
+
+std::vector<Route> Config::getRoutes()
+{
+	return routes;
+}
+
 void Config::printConfig() const
 {
 	std::cout << "server_name: ";
@@ -201,9 +218,4 @@ void Config::printConfig() const
 	for (size_t i = 0; i < routes.size(); i++)
 		routes[i].printRoute();
 	std::cout << std::endl;
-}
-
-std::string	Config::getRoot() const
-{
-	return this->root;
 }
