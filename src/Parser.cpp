@@ -111,7 +111,7 @@ void	Parser::printConfigLines(std::vector<std::string> configLines)
 		std::cout << configLines[i] << std::endl;
 }
 
-std::vector<Config>	Parser::getConfigVector() const
+std::vector<Config>	Parser::getConfigVector()
 {
 	return configVector;
 }

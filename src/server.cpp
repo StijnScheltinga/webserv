@@ -1,25 +1,39 @@
 #include "../inc/Server.hpp"
 #include "../inc/Request.hpp"
 #include "../inc/Config.hpp"
+#include <algorithm>
 #include <poll.h>
 #include <vector>
+#include <cstring>
 
 int Server::listen_to_socket()
 {
-    if (bind(server_socket_fd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
+	int serverFd = socket(AF_INET, SOCK_STREAM, 0);
+	int servernum = serverFds.size();
+	if (serverFd == -1)
+	{
+		exit_error(SOCK_FAIL, 0);
+	}
+	std::memset(&sock_addr, 0, sizeof(sock_addr));
+	sock_addr.sin_family = AF_INET;
+	sock_addr.sin_addr.s_addr = INADDR_ANY;
+	std::cout << configs[servernum].getPort() << std::endl;
+	sock_addr.sin_port = htons(configs[servernum].getPort());
+	sock_addr_len = sizeof(sock_addr);
+    if (bind(serverFd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
-        close(server_socket_fd);
-        exit_error(SOCK_FAIL, 0);
-    }
-    if (listen(server_socket_fd, max_connections) < 0)
-    {
-        close(server_socket_fd);
+        close(serverFd);
         exit_error(BIND_FAIL, 0);
+    }
+    if (listen(serverFd, max_connections) < 0)
+    {
+        close(serverFd);
+        exit_error(LISTEN_FAIL, 0);
     }
     std::ostringstream ss;
     ss <<  "Listening on address " << inet_ntoa(sock_addr.sin_addr) << " on port " << ntohs(sock_addr.sin_port);
     std::cout << GREEN << ss.str() << RESET << std::endl;
-    return 0;
+    return serverFd;
 }
 
 /*
@@ -74,20 +88,19 @@ void Server::handle_request(int client_fd)
 			valread = read(client_fd, buffer, 1024);
 		}
 		request_string.append("\0");
-		// Request request(client_fd, request_string.c_str(), , this);
-		// request.ParseRequest();
-		// request.printMap();
-		// request.HandleRequest(request_string);
+		Request request(client_fd, request_string.c_str(), this);
+		// Route *route = matchRoute(&)
+		request.HandleRequest(request_string);
     }
 }
 
 //currently no checks for max clients
-void	Server::add_client(int epoll_fd)
+void	Server::add_client(int epoll_fd, int event_fd)
 {
 	Client	*client = new Client();
 
 	//accepts client through accept function and adds it to the epoll instance
-	int err = client->acceptClient(server_socket_fd, epoll_fd);
+	int err = client->acceptClient(event_fd, epoll_fd);
 	if (err == ACCEPT_ERROR)
 	{
 		delete client;
@@ -135,12 +148,15 @@ void	Server::accept_connection()
 	if (epoll_fd == -1)
 		exit_error(EPOLL_ERROR, 0);
 
-	struct epoll_event	event_server;
 	//only EPOLLIN for connecting with users
-	event_server.events = EPOLLIN;
-	event_server.data.fd = server_socket_fd;
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &event_server) == -1)
-		exit_error(EPOLL_CTL_ERROR, 0);
+	for (size_t i = 0; i < serverFds.size(); i++)
+	{
+		struct epoll_event	event_server;
+		event_server.events = EPOLLIN;
+		event_server.data.fd = serverFds[i];
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverFds[i], &event_server) == -1)
+			exit_error(EPOLL_CTL_ERROR, 0);
+	}
 	while (true)
 	{
 		struct epoll_event	events[MAX_EVENTS];
@@ -150,10 +166,12 @@ void	Server::accept_connection()
 
 		for (int i = 0; i != n_events; i++)
 		{
-			if (events[i].data.fd == server_socket_fd)
+			int event_fd = events[i].data.fd;
+			if (std::find(serverFds.begin(), serverFds.end(), event_fd) != serverFds.end())
 			{
+				std::cout << "new connection" << std::endl;
 				//handle new connection, create client
-				add_client(epoll_fd);
+				add_client(epoll_fd, event_fd);
 			}
 			else if (events[i].events & (EPOLLHUP | EPOLLERR))
 			{
@@ -164,7 +182,7 @@ void	Server::accept_connection()
 			else if (events[i].events & EPOLLIN)
 			{
 				//handle request
-				//std::cout << "handle request" << std::endl;
+				std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
 			}
 			else if (events[i].events & EPOLLOUT)
@@ -177,27 +195,21 @@ void	Server::accept_connection()
 	}
 }
 
-Server::Server()
+Server::Server(std::vector<Config> &configVector) : configs(configVector)
 {
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
-	
 
-
-	// TransferConfig();
-    // max_connections = 3;
-    // sock_addr.sin_family = AF_INET;
-    // sock_addr.sin_port = htons(port);
-    // sock_addr.sin_addr.s_addr = INADDR_ANY;
-    // sock_addr_len = sizeof(sock_addr);
-    // server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    // if (server_socket_fd == -1)
-    //     exit_error(SOCK_FAIL, 0);
-
+	for (size_t i = 0; i < configVector.size(); i++)
+	{
+		int serverFd = listen_to_socket();
+		serverFds.push_back(serverFd);
+	}
+	accept_connection();
 }
 
 Server::~Server()
 {
-    close(server_socket_fd);
-	delete config;
+// while (!serverFds)
+	// delete configs;
     std::cout << RED << "Server closed" <<  RESET << std::endl;
 }

@@ -36,6 +36,8 @@ class Route
 
 		void printRoute() const;
 
+		Route *matchRoute(std::vector<Route> &routes, std::string path, std::string method);
+
 };
 
 #endif

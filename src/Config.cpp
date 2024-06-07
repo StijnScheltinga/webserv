@@ -171,6 +171,11 @@ void Config::setRoot(std::string root)
 	this->root = root;
 }
 
+int Config::getPort() const
+{
+	return port;
+}
+
 
 void Config::printConfig() const
 {

@@ -11,10 +11,8 @@ int main(int argc, char **argv)
     }
 	//pass config file path to parser
 	Parser	parser(argv[1]);
-	// Server	server(parser.getConfigVector());
+    std::vector<Config> configVector = parser.getConfigVector();
+	Server	server(configVector);
 
-    // Server server(argv[1]);
-    // server.listen_to_socket();
-    // server.accept_connection();
     return 0;
 }

@@ -37,6 +37,12 @@ class Config
 
 		char getMaxClientBodySizeSuffix(std::string &clientMaxBodySize);
 
+		int getPort() const;
+		std::string getRoot() const;
+		size_t getClientMaxBodySize() const;
+		std::vector<Route> getRoutes() const;
+		std::vector<ErrorPage> getErrorPages() const;
+
 	std::map<std::string, void (Config::*)(std::string)> configHandlers = 
 	{
 		{"server_name", &Config::setServerName},

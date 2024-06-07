@@ -14,7 +14,7 @@ const std::string CONTENT_LENGTH = "Content-Length: ";
 class Request
 {
 	public:
-		Request(int client_fd, const char *buffer, std::map<std::string, std::vector<std::string> > config_map, Server *serverInstance);
+		Request(int client_fd, const char *buffer, Server *serverInstance);
 		~Request();
 		void ParseRequest();
 		void HandleRequest(std::string &request_string);
@@ -32,7 +32,6 @@ class Request
 	private:
 		const char *_buffer;
 		int _client_fd;
-		std::map<std::string, std::vector<std::string> > _config_map;
 		std::map<std::string, std::string> request_map;
 		std::string _http_version;
 		Server	*_serverInstance;

@@ -20,7 +20,7 @@ class Parser
 		Parser(char *configFilePath);
 		~Parser();
 
-		std::vector<Config>			getConfigVector() const;
+		std::vector<Config>			getConfigVector();
 		
 };
 
