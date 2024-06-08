@@ -4,9 +4,8 @@
 
 
 Client::Client() : client_fd(0), addr_len(sizeof(client_addr)) {}
-// { std::cout << "client constructor called" << std::endl; }
 
-Client::~Client() { std::cout << "client destructor called" << std::endl; }
+Client::~Client() {;}
 
 int	Client::acceptClient(int server_socket_fd, int epoll_fd)
 {

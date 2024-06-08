@@ -38,7 +38,7 @@ class Config
 		void setRoot(std::string root);
 		void setServerFd(int fd);
 		int getServerFd();
-		std::vector<Route> getRoutes();
+		std::vector<Route> &getRoutes();
 
 		char getMaxClientBodySizeSuffix(std::string &clientMaxBodySize);
 

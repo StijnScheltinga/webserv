@@ -77,7 +77,7 @@ void Server::handle_request(int client_fd)
     {
       // handle disconnect
       remove_client(client_fd);
-      std::cout << "disconnect" << std::endl;
+      //std::cout << "disconnect" << std::endl;
     }
 	else
 	{
@@ -139,7 +139,7 @@ void	Server::remove_client(int client_fd)
 			close((*it)->getClientFd());
 			delete (*it);
 			clientVec.erase(it);
-			std::cout << "client_deleted from vector" << std::endl;
+			//std::cout << "client_deleted from vector" << std::endl;
 			break ;
 		}
 	}
@@ -176,20 +176,20 @@ void	Server::accept_connection()
 			int event_fd = events[i].data.fd;
 			if (std::find(serverFds.begin(), serverFds.end(), event_fd) != serverFds.end())
 			{
-				std::cout << "new connection" << std::endl;
+				//std::cout << "new connection" << std::endl;
 				//handle new connection, create client
 				add_client(epoll_fd, event_fd);
 			}
 			else if (events[i].events & (EPOLLHUP | EPOLLERR))
 			{
 				//error or hangup, client needs to be dissconnected.
-				std::cout << "hang up or error" << std::endl;
+				//std::cout << "hang up or error" << std::endl;
 				remove_client(events[i].data.fd);
 			}
 			else if (events[i].events & EPOLLIN)
 			{
 				//handle request
-				std::cout << "handle request" << std::endl;
+				//std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
 			}
 			else if (events[i].events & EPOLLOUT)

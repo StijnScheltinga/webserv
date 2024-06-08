@@ -21,15 +21,15 @@ std::string Request::find_boundary(std::string &request_string)
 	return (request_string.substr(boundary_pos, boundary_end_pos - boundary_pos));
 }
 
-std::string Request::Handle_POST(Route &route)
+std::string Request::Handle_POST(Route *route)
 {
 	std::string response = "POST request received\n";
 	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 	std::string path;
-	if (route.getRoot().empty())
-		path = config->getRoot() + route.getPath();
+	if (route->getRoot().empty())
+		path = config->getRoot() + route->getPath();
 	else
-		path = route.getRoot() + route.getPath();
+		path = route->getRoot() + route->getPath();
 	std::string request_string(requestString);
 	std::string boundary = "--" + find_boundary(request_string);
 	std::ofstream ofs(path.c_str(), std::ios::binary);

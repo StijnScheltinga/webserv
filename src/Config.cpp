@@ -197,7 +197,7 @@ std::vector<ErrorPage> Config::getErrorPages() const
 	return error_pages;
 }
 
-std::vector<Route> Config::getRoutes()
+std::vector<Route> &Config::getRoutes()
 {
 	return routes;
 }
