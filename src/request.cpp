@@ -88,7 +88,6 @@ void Request::HandleRequest()
 		{
 			std::string response = Handle_GET(route);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			//create write request
 			_serverInstance->create_write_request(response_header, client->getClientFd());
 		}
 		else if (request_map["Method"] == "POST")
@@ -122,46 +121,22 @@ void	Request::printMap(void)
 	std::cout << "---end request---" << std::endl;
 }
 
+std::string Request::getErrorPath(const ServerException &e)
+{
+	if (dynamic_cast<const NotFoundException *>(&e))
+		return config->matchErrorPage(404);
+	else if (dynamic_cast<const BadRequestException *>(&e))
+		return config->matchErrorPage(400);
+	else if (dynamic_cast<const InternalServerErrorException *>(&e))
+		return (config->matchErrorPage(500));
+	else
+		return ("<html><body><h1>Error page not found</h1></body></html>");
+
+}
 std::string Request::getErrorPage(const ServerException &e)
 {
-	std::string path = config->getRoot();
-	if (e.what() == "404 Page not found")
-	{
-		for (std::vector<ErrorPage>::iterator it = config->getErrorPages().begin(); it != config->getErrorPages().end(); it++)
-		{
-			for (std::vector<int>::iterator it2 = it->getStatusCodesVector().begin(); it2 != it->getStatusCodesVector().end(); it2++)
-			{
-				if (*it2 == 404)
-				{
-					std::cout << "404 error, path: " << it->getPath() << std::endl;
-					path += it->getPath();
-				}
-			}
-		}
-	}
-	else if (e.what() == "400 Bad request")
-	{
-		for (std::vector<ErrorPage>::iterator it = config->getErrorPages().begin(); it != config->getErrorPages().end(); it++)
-		{
-			for (std::vector<int>::iterator it2 = it->getStatusCodesVector().begin(); it2 != it->getStatusCodesVector().end(); it2++)
-			{
-				if (*it2 == 400)
-					path += it->getPath();
-			}
-		}
-	}
-	else if (e.what() == "500 Internal server error")
-	{
-		for (std::vector<ErrorPage>::iterator it = config->getErrorPages().begin(); it != config->getErrorPages().end(); it++)
-		{
-			for (std::vector<int>::iterator it2 = it->getStatusCodesVector().begin(); it2 != it->getStatusCodesVector().end(); it2++)
-			{
-				if (*it2 == 500)
-					path += it->getPath();
-			}
-		}
-	}
-	std::ifstream file(path);
+	std::string errorPagePath = getErrorPath(e);
+	std::ifstream file(errorPagePath);
 	if (!file.is_open() || !file.good())
 	{
 		std::cerr << "Error page not found" << std::endl;
@@ -197,7 +172,7 @@ std::string Request::Handle_GET(Route *route)
 	std::string path;
 	std::string root = defineRoot(route);
 	std::string index = defineIndex(route);
-	if (!index.empty() && request_map["Path"].back() == '/')
+	if (isDirectory(request_map["Path"]) == true && !route->getIndex().empty())
 		path = root + request_map["Path"] + "/" + index;
 	else
 		path = root + request_map["Path"];

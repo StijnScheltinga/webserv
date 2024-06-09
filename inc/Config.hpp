@@ -46,6 +46,7 @@ class Config
 		std::string getRoot() const;
 		size_t getClientMaxBodySize() const;
 		std::vector<ErrorPage> getErrorPages() const;
+		std::string matchErrorPage(int statusCode);
 
 	std::map<std::string, void (Config::*)(std::string)> configHandlers = 
 	{

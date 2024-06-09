@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <algorithm>
 #include "../inc/Config.hpp"
 #include "../inc/Route.hpp"
 #include "../inc/ErrorPage.hpp"
@@ -195,6 +196,16 @@ std::string	Config::getRoot() const
 std::vector<ErrorPage> Config::getErrorPages() const
 {
 	return error_pages;
+}
+
+std::string Config::matchErrorPage(int statusCode)
+{
+	for (size_t i = 0; i < error_pages.size(); i++)
+	{
+		if (std::find(error_pages[i].getStatusCodesVector().begin(), error_pages[i].getStatusCodesVector().end(), statusCode) != error_pages[i].getStatusCodesVector().end())
+			return error_pages[i].getPath();
+	}
+	return "";
 }
 
 std::vector<Route> &Config::getRoutes()
