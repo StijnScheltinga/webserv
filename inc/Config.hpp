@@ -21,6 +21,7 @@ class Config
 
 
 		int port;
+		std::string index;
 		std::string root;
 		size_t client_max_body_size;
 		int	serverFd;
@@ -34,6 +35,7 @@ class Config
 		void setPort(std::string port);
 		void setClientMaxBodySize(std::string clientMaxBodySize);
 		void setErrorPage(std::string errorPage);
+		void setIndex(std::string index);
 		void addRoute(std::vector<std::string>::iterator &it, std::vector<std::string>::const_iterator &end);
 		void setRoot(std::string root);
 		void setServerFd(int fd);
@@ -44,6 +46,7 @@ class Config
 
 		int getPort() const;
 		std::string getRoot() const;
+		std::string getIndex();
 		size_t getClientMaxBodySize() const;
 		std::vector<ErrorPage> getErrorPages() const;
 		std::string matchErrorPage(int statusCode);
@@ -55,6 +58,7 @@ class Config
 		{"client_max_body_size", &Config::setClientMaxBodySize},
 		{"error_page", &Config::setErrorPage},
 		{"root", &Config::setRoot},
+		{"index", &Config::setIndex},
 	};
 	std::vector<std::string> cgiExtensions = {".py", ".cgi"};
 };

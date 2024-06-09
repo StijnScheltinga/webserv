@@ -42,17 +42,29 @@ void Request::ParseRequest()
 Route *Request::matchRoute(std::string directory_path)
 {
 	std::vector<Route>&	routes = config->getRoutes();
-	std::cout << "directory_path: " << directory_path << std::endl;
-	std::string path = directory_path;
-	for (std::vector<Route>::iterator it = routes.begin(); it != routes.end(); it++)
+	Route *longestMatch = nullptr;
+	size_t longestMatchLength = 0;
+	for (auto &route: routes)
 	{
-		if (it->getPath() == path)
+		std::string routePath = route.getPath();
+		if (directory_path.find(routePath) == 0 && routePath.length() > longestMatchLength)
 		{
-			if (std::find(it->getAllowedMethods().begin(), it->getAllowedMethods().end(), request_map["Method"]) != it->getAllowedMethods().end())
-				return &(*it);
+			longestMatch = &route;
+			longestMatchLength = routePath.length();
 		}
 	}
-	return nullptr;
+	if (!longestMatch)
+	{
+		for (auto &route : routes)
+		{
+			if (route.getPath() == "/")
+			{
+				longestMatch = &route;
+				break ;
+			}
+		}
+	}
+	return longestMatch;
 }
 
 bool Request::isDirectory(std::string path)
@@ -61,38 +73,44 @@ bool Request::isDirectory(std::string path)
 	if (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
 		return true;
 	return false;
-
 }
 
+std::string Request::composePath(Route *route)
+{
+	std::string root = defineRoot(route);
+	std::string index = defineIndex(route);
+	if (isDirectory(root + request_map["Path"]))
+	{
+		if (root.back() != '/')
+			root += "/";
+		return root + request_map["Path"] + index;
+	}
+	return root + request_map["Path"];
+}
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
 	try
 	{
-		std::string directory_path = request_map["Path"];
-		if (!isDirectory(directory_path))
-		{
-			//cut down the path to the last slash to get the directory path.
-			size_t last_slash = directory_path.find_last_of('/') + 1;
-			directory_path = directory_path.substr(0, last_slash);
-		}
-		//check if the request_path corresponds to a location in the config file.
-		Route *route = matchRoute(directory_path);
+		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
-	
+		std::string path = composePath(route);
+		std::cout << "Path: " << path << std::endl;
+
+
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		// if (isCgiRequest(request_map["Path"]))
 		// 	execute_cgi(request_map["Path"]);
 		if (request_map["Method"] == "GET")
 		{
-			std::string response = Handle_GET(route);
+			std::string response = Handle_GET(path);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			_serverInstance->create_write_request(response_header, client->getClientFd());
 		}
 		else if (request_map["Method"] == "POST")
 		{
-			std::string response = Handle_POST(route);
+			std::string response = Handle_POST(path);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			_serverInstance->create_write_request(response, client->getClientFd());
 		}
@@ -159,24 +177,22 @@ std::string Request::defineRoot(Route *route)
 std::string Request::defineIndex(Route *route)
 {
 	std::string index;
-	if (route->getIndex().empty() && route->getAutoIndex())
-		index = "index.html";
-	else if (route->getIndex().empty() && !route->getAutoIndex())
-		throw NotFoundException();
+	if (route->getIndex().empty())
+		index = config->getIndex();
 	else
 		index = route->getIndex();
 	return index;
 }
-std::string Request::Handle_GET(Route *route)
+
+std::string Request::normalizePath(std::string path)
 {
-	std::string path;
-	std::string root = defineRoot(route);
-	std::string index = defineIndex(route);
-	if (isDirectory(request_map["Path"]) == true && !route->getIndex().empty())
-		path = root + request_map["Path"] + "/" + index;
-	else
-		path = root + request_map["Path"];
-	std::cout << "path: " << path << std::endl;
+	std::string normalizedPath = path;
+	if (!normalizedPath.empty() && normalizedPath[0] == '/')
+		normalizedPath.erase(0, 1);
+	return normalizedPath;
+}
+std::string Request::Handle_GET(std::string path)
+{
 	std::ifstream file(path);
 	if(!file.is_open() || !file.good())
 		throw NotFoundException();

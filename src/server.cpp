@@ -75,9 +75,7 @@ void Server::handle_request(int client_fd)
     int valread = read(client_fd, buffer, 1024);
 	if (valread == 0)
     {
-      // handle disconnect
       remove_client(client_fd);
-      //std::cout << "disconnect" << std::endl;
     }
 	else
 	{
@@ -121,25 +119,19 @@ void	Server::add_client(int epoll_fd, int event_fd)
 	}
 	else
 		clientVec.push_back(client);
-
-	//add client to client vec
-	// std::cout << "client accepted and put in vector of clients" << std::endl;
 }
 
 void	Server::remove_client(int client_fd)
 {
 	std::vector<Client*>::iterator it;
-	//loop through client array
 	for (it = clientVec.begin(); it != clientVec.end(); it++)
 	{
-		//if fd of request to disconnect is same as client in arr, delete
 		if (client_fd == (*it)->getClientFd())
 		{
 			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
 			close((*it)->getClientFd());
 			delete (*it);
 			clientVec.erase(it);
-			//std::cout << "client_deleted from vector" << std::endl;
 			break ;
 		}
 	}
@@ -175,29 +167,13 @@ void	Server::accept_connection()
 		{
 			int event_fd = events[i].data.fd;
 			if (std::find(serverFds.begin(), serverFds.end(), event_fd) != serverFds.end())
-			{
-				//std::cout << "new connection" << std::endl;
-				//handle new connection, create client
 				add_client(epoll_fd, event_fd);
-			}
 			else if (events[i].events & (EPOLLHUP | EPOLLERR))
-			{
-				//error or hangup, client needs to be dissconnected.
-				//std::cout << "hang up or error" << std::endl;
 				remove_client(events[i].data.fd);
-			}
 			else if (events[i].events & EPOLLIN)
-			{
-				//handle request
-				//std::cout << "handle request" << std::endl;
 				handle_request(events[i].data.fd);
-			}
 			else if (events[i].events & EPOLLOUT)
-			{
-				//check for write request
 				process_write_request(events[i].data.fd);
-				// std::cout << "ready for writing" << std::endl;
-			}
 		}
 	}
 }
@@ -240,7 +216,5 @@ Server::Server(std::vector<Config> &configVector) : configs(configVector)
 
 Server::~Server()
 {
-// while (!serverFds)
-	// delete configs;
     std::cout << RED << "Server closed" <<  RESET << std::endl;
 }

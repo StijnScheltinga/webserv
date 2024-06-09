@@ -178,6 +178,11 @@ void Config::setServerFd(int fd)
 	this->serverFd = fd;
 }
 
+void Config::setIndex(std::string index)
+{
+	this->index = index;
+}
+
 int Config::getPort() const
 {
 	return port;
@@ -211,6 +216,10 @@ std::string Config::matchErrorPage(int statusCode)
 std::vector<Route> &Config::getRoutes()
 {
 	return routes;
+}
+std::string Config::getIndex()
+{
+	return index;
 }
 
 void Config::printConfig() const

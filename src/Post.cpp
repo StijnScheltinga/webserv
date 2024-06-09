@@ -21,20 +21,16 @@ std::string Request::find_boundary(std::string &request_string)
 	return (request_string.substr(boundary_pos, boundary_end_pos - boundary_pos));
 }
 
-std::string Request::Handle_POST(Route *route)
+std::string Request::Handle_POST(std::string path)
 {
 	std::string response = "POST request received\n";
 	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-	std::string path;
 	std::string request_string(requestString);
 	std::string file_name = find_file_name(request_string);
 	std::string boundary = "--" + find_boundary(request_string);
-	if (route->getRoot().empty())
-		path = config->getRoot() + route->getPath() + "/" + file_name;
-	else
-		path = route->getRoot() + route->getPath() + file_name;
-	std::cout << "upload path: " << path << std::endl;
-	std::ofstream ofs(path.c_str(), std::ios::binary);
+	std::string upload_path = path + "/" + file_name;
+
+	std::ofstream ofs(upload_path.c_str(), std::ios::binary);
 	if (!ofs.is_open())
 	{
 		std::cout << "Error opening file" << std::endl;
