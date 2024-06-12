@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <algorithm>
 #include "../inc/Config.hpp"
 #include "../inc/Route.hpp"
 #include "../inc/ErrorPage.hpp"
@@ -25,6 +26,7 @@ void Config::addRoute(std::vector<std::string>::iterator &it, std::vector<std::s
 	while (it != end)
 	{
 		std::string line = *it;
+		std::cout << "line: " << line << std::endl;
 		if (line.find('}') != std::string::npos)
 			break ;
 		std::istringstream ss(line);
@@ -58,6 +60,7 @@ void Config::ParseConfig()
 		{
 			std::vector<std::string>::const_iterator endline = serverBlock.end();
 			addRoute(it, endline);
+			continue ;
 		}
 		std::string key, value;
 		std::istringstream iss(line);
@@ -175,6 +178,11 @@ void Config::setServerFd(int fd)
 	this->serverFd = fd;
 }
 
+void Config::setIndex(std::string index)
+{
+	this->index = index;
+}
+
 int Config::getPort() const
 {
 	return port;
@@ -183,6 +191,35 @@ int Config::getPort() const
 int Config::getServerFd()
 {
 	return this->serverFd;
+}
+
+std::string	Config::getRoot() const
+{
+	return this->root;
+}
+
+std::vector<ErrorPage> Config::getErrorPages() const
+{
+	return error_pages;
+}
+
+std::string Config::matchErrorPage(int statusCode)
+{
+	for (size_t i = 0; i < error_pages.size(); i++)
+	{
+		if (std::find(error_pages[i].getStatusCodesVector().begin(), error_pages[i].getStatusCodesVector().end(), statusCode) != error_pages[i].getStatusCodesVector().end())
+			return error_pages[i].getPath();
+	}
+	return "";
+}
+
+std::vector<Route> &Config::getRoutes()
+{
+	return routes;
+}
+std::string Config::getIndex()
+{
+	return index;
 }
 
 void Config::printConfig() const
@@ -201,9 +238,4 @@ void Config::printConfig() const
 	for (size_t i = 0; i < routes.size(); i++)
 		routes[i].printRoute();
 	std::cout << std::endl;
-}
-
-std::string	Config::getRoot() const
-{
-	return this->root;
 }

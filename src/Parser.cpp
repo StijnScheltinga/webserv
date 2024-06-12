@@ -74,7 +74,7 @@ std::vector<std::string>	Parser::formatFile()
 
 		configFile.push_back(line);
 	}
-	printConfigLines(configFile);
+	//printConfigLines(configFile);
 	checkBrackets(configFile);
 	configStream.close();
 	return (configFile);

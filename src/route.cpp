@@ -99,16 +99,3 @@ void Route::printRoute() const
 		std::cout << "		autoindex: off" << std::endl;
 }
 
-Route *matchRoute(std::vector<Route> &routes, std::string path, std::string method)
-{
-	for (auto it = routes.begin(); it != routes.end(); it++)
-	{
-		if (it->getPath() == path)
-			{
-				if (std::find(it->getAllowedMethods().begin(), it->getAllowedMethods().end(), method) != it->getAllowedMethods().end())
-					return &(*it);
-			}
-	}
-	return nullptr;
-}
-

@@ -1,18 +1,15 @@
 #include "../inc/Request.hpp"
-#include "../inc/ServerException.hpp"
 #include "../inc/Config.hpp"
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <algorithm>
 #include <fstream>
+#include <sys/stat.h>
 
-Request::Request(Client *client, Config *config, const char *requestString)
+Request::Request(Client *client, Config *config, const char *requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
 {
-	this->client = client;
-	this->config = config;
-	this->requestString = requestString;
 	ParseRequest();
-	printMap();
 	HandleRequest();
 }
 
@@ -42,54 +39,94 @@ void Request::ParseRequest()
 		}
 	}
 }
+Route *Request::matchRoute(std::string directory_path)
+{
+	std::vector<Route>&	routes = config->getRoutes();
+	Route *longestMatch = nullptr;
+	size_t longestMatchLength = 0;
+	for (auto &route: routes)
+	{
+		std::string routePath = route.getPath();
+		if (directory_path.find(routePath) == 0 && routePath.length() > longestMatchLength)
+		{
+			longestMatch = &route;
+			longestMatchLength = routePath.length();
+		}
+	}
+	if (!longestMatch)
+	{
+		for (auto &route : routes)
+		{
+			if (route.getPath() == "/")
+			{
+				longestMatch = &route;
+				break ;
+			}
+		}
+	}
+	return longestMatch;
+}
 
+bool Request::isDirectory(std::string path)
+{
+	struct stat sb;
+	if (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
+		return true;
+	return false;
+}
 
+std::string Request::composePath(Route *route)
+{
+	std::string root = defineRoot(route);
+	std::string index = defineIndex(route);
+	if (isDirectory(root + request_map["Path"]))
+	{
+		if (root.back() != '/')
+			root += "/";
+		return root + request_map["Path"] + index;
+	}
+	return root + request_map["Path"];
+}
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
 	try
 	{
+		Route *route = matchRoute(request_map["Path"]);
+		if (!route)
+			throw NotFoundException();
+		std::string path = composePath(route);
+		std::cout << "Path: " << path << std::endl;
+
+
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		// if (isCgiRequest(request_map["Path"]))
 		// 	execute_cgi(request_map["Path"]);
 		if (request_map["Method"] == "GET")
 		{
-			std::string response = Handle_GET();
+			std::string response = Handle_GET(path);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			//create write request
-			_serverInstance->create_write_request(response_header, _client_fd);
+			_serverInstance->create_write_request(response_header, client->getClientFd());
 		}
-		// else if (request_map["Method"] == "POST")
-		// {
-		// 	std::string postRequestString(requestString);
-		// 	std::string response = Handle_POST(postRequestString);
-		// 	std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		// 	_serverInstance->create_write_request(response, _client_fd);
-		// }
+		else if (request_map["Method"] == "POST")
+		{
+			std::string response = Handle_POST(path);
+			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+			_serverInstance->create_write_request(response, client->getClientFd());
+		}
 		// else if (request_map["Method"] == "DELETE")
 		// {
 		// 	Handle_DELETE();
 		// }
 	}
-	catch (const BadRequestException &e)
+	catch (const ServerException &e)
 	{
 		std::cerr << RED << e.what() << RESET << std::endl;
-		std::string response = getErrorPage("400.html");
+		std::string response = getErrorPage(BadRequestException());
 		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, _client_fd);
+		_serverInstance->create_write_request(response_header, client->getClientFd());
 	}
-	catch (const NotFoundException &e){
-		std::cerr << RED <<  e.what() << RESET <<  std::endl;
-		std::string response = getErrorPage("404.html");
-		std::string response_header = HTTP_NOT_FOUND + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, _client_fd);
-	}
-	catch (const InternalServerErrorException &e){
-		std::cerr << RED << e.what() << RESET << std::endl;
-		std::string response = getErrorPage("500.html");
-		std::string response_header = SERVER_ERROR + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, _client_fd);
-	}
+
 }
 
 void	Request::printMap(void)
@@ -102,39 +139,64 @@ void	Request::printMap(void)
 	std::cout << "---end request---" << std::endl;
 }
 
-// std::string Request::getErrorPage(std::string filename)
-// {
-// 	std::string path = config->
-// 	std::ifstream file(path);
-// 	if (file.is_open() && file.good())
-// 	{
-// 		std::stringstream buffer;
-// 		buffer << file.rdbuf();
-// 		return buffer.str();
-// 	}
-// 	else
-// 	{
-// 		return "\0";
-// 	}
-// }
-
-std::string Request::Handle_GET()
+std::string Request::getErrorPath(const ServerException &e)
 {
-	std::string	fileName(request_map["Path"]);
-
-	if (fileName == "/")
-		fileName += "index.html";
-	std::string path = config->getRoot() + fileName;
-	std::ifstream	file(path);
-	if (file.is_open() && file.good())
-	{
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		return buffer.str();
-	}
+	if (dynamic_cast<const NotFoundException *>(&e))
+		return config->matchErrorPage(404);
+	else if (dynamic_cast<const BadRequestException *>(&e))
+		return config->matchErrorPage(400);
+	else if (dynamic_cast<const InternalServerErrorException *>(&e))
+		return (config->matchErrorPage(500));
 	else
+		return ("<html><body><h1>Error page not found</h1></body></html>");
+
+}
+std::string Request::getErrorPage(const ServerException &e)
+{
+	std::string errorPagePath = getErrorPath(e);
+	std::ifstream file(errorPagePath);
+	if (!file.is_open() || !file.good())
 	{
-		std::cout << "Throwing exception\n";
-		throw NotFoundException();
+		std::cerr << "Error page not found" << std::endl;
+		exit(1);
 	}
+	std::stringstream ss;
+	ss << file.rdbuf();
+	return ss.str();
+}
+
+std::string Request::defineRoot(Route *route)
+{
+	std::string root;
+	if (route->getRoot().empty())
+		root = config->getRoot();
+	else
+		root = route->getRoot();
+	return root;
+}
+std::string Request::defineIndex(Route *route)
+{
+	std::string index;
+	if (route->getIndex().empty())
+		index = config->getIndex();
+	else
+		index = route->getIndex();
+	return index;
+}
+
+std::string Request::normalizePath(std::string path)
+{
+	std::string normalizedPath = path;
+	if (!normalizedPath.empty() && normalizedPath[0] == '/')
+		normalizedPath.erase(0, 1);
+	return normalizedPath;
+}
+std::string Request::Handle_GET(std::string path)
+{
+	std::ifstream file(path);
+	if(!file.is_open() || !file.good())
+		throw NotFoundException();
+	std::stringstream ss;
+	ss << file.rdbuf();
+	return ss.str();
 }
