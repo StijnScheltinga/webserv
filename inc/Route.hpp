@@ -18,9 +18,10 @@ class Route
 		
 		void setPath(std::string path);
 		void setAllowedMethods(std::string line);
-		void setAlias(std::string root);
+		void setAlias(std::string alias);
 		void setIndex(std::string index);
 		void setAutoIndex(std::string autoindex);
+		void setUploadDir(std::string upload_dir);
 
 		void createAutoIndex();
 
@@ -33,6 +34,7 @@ class Route
 		std::string getAlias() const;
 		std::string getIndex() const;
 		bool getAutoIndex() const;
+		std::string getUploadDir() const;
 		// void setUploadDir(std::string upload_dir);
 		// void setCgiConfig(CgiConfig cgi_config);
 

@@ -72,10 +72,10 @@ void Route::setAutoIndex(std::string autoindex)
 	// std::cout << "autoindex: " << autoindex << std::endl;
 }
 
-// void Route::setUploadDir(std::string upload_dir)
-// {
-// 	this->upload_dir = upload_dir;
-// }
+void Route::setUploadDir(std::string upload_dir)
+{
+	this->upload_dir = upload_dir;
+}
 
 // void Route::setCgiConfig(CgiConfig cgi_config)
 // {
@@ -105,6 +105,12 @@ std::string Route::getIndex() const
 bool Route::getAutoIndex() const
 {
 	return (this->autoindex);
+}
+
+std::string Route::getUploadDir() const
+{
+	return (this->upload_dir);
+
 }
 
 void Route::printRoute() const
