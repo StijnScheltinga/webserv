@@ -34,12 +34,14 @@ void Config::addRoute(std::vector<std::string>::iterator &it, std::vector<std::s
 		ss >> key >> value;
 		if (key == "limit_except")
 			newRoute.setAllowedMethods(line);
-		else if (key == "root")
-			newRoute.setRoot(value);
+		else if (key == "alias")
+			newRoute.setAlias(value);
 		else if (key == "index")
 			newRoute.setIndex(value);
 		else if (key == "autoindex")
 			newRoute.setAutoIndex(value);
+		else if (key == "client_body_temp_path")
+			newRoute.setUploadDir(value);
 		else
 		{
 			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;

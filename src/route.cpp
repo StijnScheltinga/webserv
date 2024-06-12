@@ -29,9 +29,9 @@ void Route::setAllowedMethods(std::string line)
 		allowed_methods.push_back(value);
 }
 
-void Route::setRoot(std::string root)
+void Route::setAlias(std::string alias)
 {
-	this->root = root;
+	this->alias = alias;
 }
 
 void Route::setIndex(std::string index)
@@ -48,10 +48,10 @@ void Route::setAutoIndex(std::string autoindex)
 	
 }
 
-// void Route::setUploadDir(std::string upload_dir)
-// {
-// 	this->upload_dir = upload_dir;
-// }
+void Route::setUploadDir(std::string upload_dir)
+{
+	this->upload_dir = upload_dir;
+}
 
 // void Route::setCgiConfig(CgiConfig cgi_config)
 // {
@@ -68,9 +68,9 @@ std::vector<std::string> Route::getAllowedMethods() const
 	return (this->allowed_methods);
 }
 
-std::string Route::getRoot() const
+std::string Route::getAlias() const
 {
-	return (this->root);
+	return (this->alias);
 }
 
 std::string Route::getIndex() const
@@ -83,6 +83,12 @@ bool Route::getAutoIndex() const
 	return (this->autoindex);
 }
 
+std::string Route::getUploadDir() const
+{
+	return (this->upload_dir);
+
+}
+
 void Route::printRoute() const
 {
 	std::cout << "	path: " << getPath() << std::endl;
@@ -91,7 +97,7 @@ void Route::printRoute() const
 	for (size_t j = 0; j < allowedMethods.size(); j++)
 		std::cout << "			" << allowedMethods[j] << " ";
 	std::cout << std::endl;
-	std::cout << "		root: " << getRoot() << std::endl;
+	std::cout << "		alias: " << getAlias() << std::endl;
 	std::cout << "		index: " << getIndex() << std::endl;
 	if (getAutoIndex() == true)
 		std::cout << "		autoindex: on" << std::endl;
