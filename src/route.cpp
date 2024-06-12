@@ -25,6 +25,8 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 			setIndex(value);
 		else if (key == "autoindex")
 			setAutoIndex(value);
+		else if (key == "client_body_temp_path")
+			setUploadDir(value);
 		else
 		{
 			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;

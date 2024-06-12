@@ -21,6 +21,12 @@ class BadRequestException : public ServerException
 
 };
 
+class ForbiddenException : public ServerException
+{
+	public:
+		ForbiddenException() : ServerException("403 Forbidden") {}
+};
+
 class NotFoundException : public ServerException
 {
 	public:

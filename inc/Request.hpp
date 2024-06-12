@@ -36,6 +36,7 @@ class Request
 		bool isDirectory(std::string path);
 		std::string normalizePath(std::string path);
 		std::string composePath(Route *route);
+		void autoIndex(const std::string &path, Route *route);
 
 	private:
 		Client *client;

@@ -86,9 +86,32 @@ std::string Request::composePath(Route *route)
 	else
 		path = alias + "/" + requestPath.substr(routePath.length());
 	if (isDirectory(path))
+	{
 		path += "/" + defineIndex(route);
+		autoIndex(path, route);
+	}
 	return path;
 }
+
+//if the default file specified by index is not found and auto index is on, create an index file
+//else throw a forbidden error
+void	Request::autoIndex(const std::string &path, Route *route)
+{
+	std::ifstream	file(path.c_str());
+	if (!file.good() && route->getAutoIndex())
+	{
+		std::ofstream index(path);
+		if (file.is_open())
+		{
+
+		}
+		else
+			throw InternalServerErrorException();
+	}
+	else if (!file.good())
+		throw ForbiddenException();
+}
+
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
@@ -145,6 +168,8 @@ std::string Request::getErrorPath(const ServerException &e)
 		return config->matchErrorPage(404);
 	else if (dynamic_cast<const BadRequestException *>(&e))
 		return config->matchErrorPage(400);
+	else if (dynamic_cast<const ForbiddenException *>(&e))
+		return (config->matchErrorPage(403));
 	else if (dynamic_cast<const InternalServerErrorException *>(&e))
 		return (config->matchErrorPage(500));
 	else
