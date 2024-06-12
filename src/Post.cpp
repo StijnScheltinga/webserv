@@ -29,8 +29,6 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	std::string file_name = find_file_name(request_string);
 	std::string boundary = "--" + find_boundary(request_string);
 	std::string upload_path = route->getUploadDir() + "/" + file_name;
-	std::cout << "upload path: " << upload_path << std::endl;
-
 	std::ofstream ofs(upload_path.c_str(), std::ios::binary);
 	if (!ofs.is_open())
 	{

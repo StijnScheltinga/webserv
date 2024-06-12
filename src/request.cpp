@@ -77,16 +77,21 @@ bool Request::isDirectory(std::string path)
 
 std::string Request::composePath(Route *route)
 {
-	std::string alias = route->getAlias();
+	std::string alias = normalizePath(route->getAlias());
 	std::string routePath = route->getPath();
 	std::string requestPath = request_map["Path"];
 	std::string path;
 	if (alias.empty())
-		path = config->getRoot() + requestPath;
+		path = normalizePath(config->getRoot()) + requestPath;
 	else
-		path = alias + "/" + requestPath.substr(routePath.length());
+	{
+		if (routePath == "/")
+			path = alias + requestPath;
+		else
+			path = alias + requestPath.substr(routePath.length());
+	}
 	if (isDirectory(path))
-		path += "/" + defineIndex(route);
+		path.back() == '/' ? path += defineIndex(route) : path += "/" + defineIndex(route);
 	return path;
 }
 //make a write request first and then check for availability to write to client_fd
@@ -98,7 +103,7 @@ void Request::HandleRequest()
 		if (!route)
 			throw NotFoundException();
 		std::string path = composePath(route);
-		std::cout << "Path: " << path << std::endl;
+		std::cout << "upload directory: " <<  route->getUploadDir() << std::endl;
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		// if (isCgiRequest(request_map["Path"]))
 		// 	execute_cgi(request_map["Path"]);
@@ -126,7 +131,7 @@ void Request::HandleRequest()
 		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		_serverInstance->create_write_request(response_header, client->getClientFd());
 	}
-
+	std::cout << MAGENTA << request_map["Method"] << " request handled!" << RESET << std::endl;
 }
 
 void	Request::printMap(void)
