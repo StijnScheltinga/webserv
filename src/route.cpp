@@ -3,9 +3,35 @@
 #include <iostream>
 #include <algorithm>
 
-Route::Route()
+Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::const_iterator &end)
 {
 	autoindex = false;
+	setPath(*it);
+	it++;
+	while (it != end)
+	{
+		std::string line = *it;
+		std::cout << "line: " << line << std::endl;
+		if (line.find('}') != std::string::npos)
+			break ;
+		std::istringstream ss(line);
+		std::string key, value;
+		ss >> key >> value;
+		if (key == "limit_except")
+			setAllowedMethods(line);
+		else if (key == "alias")
+			setAlias(value);
+		else if (key == "index")
+			setIndex(value);
+		else if (key == "autoindex")
+			setAutoIndex(value);
+		else
+		{
+			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;
+			exit(1);
+		}
+		it++;
+	}
 }
 
 Route::~Route()
@@ -42,10 +68,8 @@ void Route::setIndex(std::string index)
 void Route::setAutoIndex(std::string autoindex)
 {
 	if (autoindex == "on")
-		this->autoindex = true;
-	else
-		this->autoindex = false;
-	
+		this->autoindex = true;	
+	// std::cout << "autoindex: " << autoindex << std::endl;
 }
 
 void Route::setUploadDir(std::string upload_dir)
