@@ -10,7 +10,7 @@ class Route
 	private:
 		std::string path;
 		std::vector<std::string> allowed_methods;
-		std::string root;
+		std::string alias;
 		bool 		autoindex;
 		std::string index;;
 		std::string upload_dir;
@@ -22,15 +22,17 @@ class Route
 		~Route();
 		void setPath(std::string path);
 		void setAllowedMethods(std::string line);
-		void setRoot(std::string root);
+		void setAlias(std::string alias);
 		void setIndex(std::string index);
 		void setAutoIndex(std::string autoindex);
+		void setUploadDir(std::string upload_dir);
 
 		std::string getPath() const;
 		std::vector<std::string> getAllowedMethods() const;
-		std::string getRoot() const;
+		std::string getAlias() const;
 		std::string getIndex() const;
 		bool getAutoIndex() const;
+		std::string getUploadDir() const;
 		// void setUploadDir(std::string upload_dir);
 		// void setCgiConfig(CgiConfig cgi_config);
 

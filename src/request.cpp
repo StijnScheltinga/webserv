@@ -77,15 +77,17 @@ bool Request::isDirectory(std::string path)
 
 std::string Request::composePath(Route *route)
 {
-	std::string root = defineRoot(route);
-	std::string index = defineIndex(route);
-	if (isDirectory(root + request_map["Path"]))
-	{
-		if (root.back() != '/')
-			root += "/";
-		return root + request_map["Path"] + index;
-	}
-	return root + request_map["Path"];
+	std::string alias = route->getAlias();
+	std::string routePath = route->getPath();
+	std::string requestPath = request_map["Path"];
+	std::string path;
+	if (alias.empty())
+		path = config->getRoot() + requestPath;
+	else
+		path = alias + "/" + requestPath.substr(routePath.length());
+	if (isDirectory(path))
+		path += "/" + defineIndex(route);
+	return path;
 }
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
@@ -97,8 +99,6 @@ void Request::HandleRequest()
 			throw NotFoundException();
 		std::string path = composePath(route);
 		std::cout << "Path: " << path << std::endl;
-
-
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		// if (isCgiRequest(request_map["Path"]))
 		// 	execute_cgi(request_map["Path"]);
@@ -110,7 +110,7 @@ void Request::HandleRequest()
 		}
 		else if (request_map["Method"] == "POST")
 		{
-			std::string response = Handle_POST(path);
+			std::string response = Handle_POST(path, route);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			_serverInstance->create_write_request(response, client->getClientFd());
 		}
@@ -165,15 +165,6 @@ std::string Request::getErrorPage(const ServerException &e)
 	return ss.str();
 }
 
-std::string Request::defineRoot(Route *route)
-{
-	std::string root;
-	if (route->getRoot().empty())
-		root = config->getRoot();
-	else
-		root = route->getRoot();
-	return root;
-}
 std::string Request::defineIndex(Route *route)
 {
 	std::string index;
