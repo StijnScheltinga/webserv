@@ -168,10 +168,10 @@ std::string Request::getErrorPage(const ServerException &e)
 std::string Request::defineRoot(Route *route)
 {
 	std::string root;
-	if (route->getRoot().empty())
+	if (route->getAlias().empty())
 		root = config->getRoot();
 	else
-		root = route->getRoot();
+		root = route->getAlias();
 	return root;
 }
 std::string Request::defineIndex(Route *route)

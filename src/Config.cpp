@@ -19,36 +19,8 @@ Config::~Config()
 
 void Config::addRoute(std::vector<std::string>::iterator &it, std::vector<std::string>::const_iterator &end)
 {
-	Route newRoute;
-
-	newRoute.setPath(*it);
-	it++;
-	while (it != end)
-	{
-		std::string line = *it;
-		std::cout << "line: " << line << std::endl;
-		if (line.find('}') != std::string::npos)
-			break ;
-		std::istringstream ss(line);
-		std::string key, value;
-		ss >> key >> value;
-		if (key == "limit_except")
-			newRoute.setAllowedMethods(line);
-		else if (key == "root")
-			newRoute.setRoot(value);
-		else if (key == "index")
-			newRoute.setIndex(value);
-		else if (key == "autoindex")
-			newRoute.setAutoIndex(value);
-		else
-		{
-			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;
-			exit(1);
-		}
-		it++;
-	}
+	Route newRoute(it, end);
 	routes.push_back(newRoute);
-
 }
 
 void Config::ParseConfig()
