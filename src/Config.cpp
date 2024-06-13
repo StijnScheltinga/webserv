@@ -177,12 +177,13 @@ std::vector<ErrorPage> Config::getErrorPages() const
 
 std::string Config::matchErrorPage(int statusCode)
 {
-	for (size_t i = 0; i < error_pages.size(); i++)
-	{
-		if (std::find(error_pages[i].getStatusCodesVector().begin(), error_pages[i].getStatusCodesVector().end(), statusCode) != error_pages[i].getStatusCodesVector().end())
-			return error_pages[i].getPath();
-	}
-	return "";
+    for (size_t i = 0; i < error_pages.size(); i++)
+    {
+        std::vector<int> statusCodes = error_pages[i].getStatusCodesVector();
+        if (std::find(statusCodes.begin(), statusCodes.end(), statusCode) != statusCodes.end())
+            return error_pages[i].getPath();
+    }
+    return "";
 }
 
 std::vector<Route> &Config::getRoutes()
