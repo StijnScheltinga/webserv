@@ -98,9 +98,9 @@ std::string Request::composePath(Route *route)
 	{
 		//if it is a directory we want the index file
 		indexSearch = true;
-		path += defineIndex(route);
-	}
 		path.back() == '/' ? path += defineIndex(route) : path += "/" + defineIndex(route);
+	}
+	std::cout << path << std::endl;
 	return path;
 }
 
@@ -112,6 +112,7 @@ void Request::HandleRequest()
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
+		
 		std::string path = composePath(route);
 		std::cout << "Path: " << path << std::endl;
 
@@ -203,7 +204,7 @@ std::string Request::Handle_GET(std::string path)
 	std::ifstream file(path);
 	std::stringstream ss;
 	//specific to autoindex
-	if (!file.is_open() && indexSearch && route->getAutoIndex())
+	if (route && !file.is_open() && indexSearch && route->getAutoIndex())
 		ss << createAutoIndex(path);
 	else if (!file.is_open() && indexSearch)
 		throw ForbiddenException();
