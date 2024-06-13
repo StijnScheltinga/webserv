@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sys/stat.h>
 
-Request::Request(Client *client, Config *config, const char *requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
+Request::Request(Client *client, Config *config, const std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
 {
 	ParseRequest();
 	HandleRequest();
@@ -25,6 +25,8 @@ void Request::ParseRequest()
 	request_map["Path"] = path;
 	request_map["Version"] = version;
 
+	if (method == "POST")
+		return ;
 	std::string line;
 	//skip the first line, it is parsed already.
 	std::getline(ss, line);
@@ -103,10 +105,9 @@ void Request::HandleRequest()
 		if (!route)
 			throw NotFoundException();
 		std::string path = composePath(route);
-		std::cout << "upload directory: " <<  route->getUploadDir() << std::endl;
-		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
-		// if (isCgiRequest(request_map["Path"]))
-		// 	execute_cgi(request_map["Path"]);
+		std::cout << "Path: " << path << std::endl;
+		if (isCgiRequest(path))
+			execute_cgi(path);
 		if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET(path);
@@ -127,11 +128,10 @@ void Request::HandleRequest()
 	catch (const ServerException &e)
 	{
 		std::cerr << RED << e.what() << RESET << std::endl;
-		std::string response = getErrorPage(BadRequestException());
+		std::string response = getErrorPage(e);
 		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		_serverInstance->create_write_request(response_header, client->getClientFd());
 	}
-	std::cout << MAGENTA << request_map["Method"] << " request handled!" << RESET << std::endl;
 }
 
 void	Request::printMap(void)
