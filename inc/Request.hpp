@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <filesystem>
 
 const std::string HTTP_OK = "HTTP/1.1 200 OK\r\n";
 const std::string HTTP_NOT_FOUND = "HTTP/1.1 404 Not Found\r\n";
@@ -36,6 +37,7 @@ class Request
 		bool isDirectory(std::string path);
 		std::string normalizePath(std::string path);
 		std::string composePath(Route *route);
+		std::string createAutoIndex(const std::string &path);
 
 	private:
 		Client *client;
@@ -45,6 +47,8 @@ class Request
 		std::map<std::string, std::string> request_map;
 		std::string _http_version;
 		Server	*_serverInstance;
+		bool indexSearch;
+		Route *route;
 };
 
 #endif

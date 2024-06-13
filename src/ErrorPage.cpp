@@ -57,6 +57,7 @@ void ErrorPage::addStatusCode(std::string statusCode)
 		}
 	}
 	this->statusCodes.push_back(std::stoi(statusCode));
+	std::cout << "statusCode added: " << statusCode << std::endl; 
 }
 
 void ErrorPage::printErrorPage() const

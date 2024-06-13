@@ -9,6 +9,7 @@
 
 Request::Request(Client *client, Config *config, const std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
 {
+	indexSearch = false;
 	ParseRequest();
 	HandleRequest();
 }
@@ -66,6 +67,7 @@ Route *Request::matchRoute(std::string directory_path)
 			}
 		}
 	}
+	route = longestMatch;
 	return longestMatch;
 }
 
@@ -93,9 +95,15 @@ std::string Request::composePath(Route *route)
 			path = alias + requestPath.substr(routePath.length());
 	}
 	if (isDirectory(path))
+	{
+		//if it is a directory we want the index file
+		indexSearch = true;
+		path += defineIndex(route);
+	}
 		path.back() == '/' ? path += defineIndex(route) : path += "/" + defineIndex(route);
 	return path;
 }
+
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
@@ -106,9 +114,11 @@ void Request::HandleRequest()
 			throw NotFoundException();
 		std::string path = composePath(route);
 		std::cout << "Path: " << path << std::endl;
+
+		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		if (isCgiRequest(path))
 			execute_cgi(path);
-		if (request_map["Method"] == "GET")
+		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET(path);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
@@ -150,11 +160,12 @@ std::string Request::getErrorPath(const ServerException &e)
 		return config->matchErrorPage(404);
 	else if (dynamic_cast<const BadRequestException *>(&e))
 		return config->matchErrorPage(400);
+	else if (dynamic_cast<const ForbiddenException *>(&e))
+		return (config->matchErrorPage(403));
 	else if (dynamic_cast<const InternalServerErrorException *>(&e))
 		return (config->matchErrorPage(500));
 	else
 		return ("<html><body><h1>Error page not found</h1></body></html>");
-
 }
 std::string Request::getErrorPage(const ServerException &e)
 {
@@ -190,9 +201,38 @@ std::string Request::normalizePath(std::string path)
 std::string Request::Handle_GET(std::string path)
 {
 	std::ifstream file(path);
-	if(!file.is_open() || !file.good())
-		throw NotFoundException();
 	std::stringstream ss;
-	ss << file.rdbuf();
+	//specific to autoindex
+	if (!file.is_open() && indexSearch && route->getAutoIndex())
+		ss << createAutoIndex(path);
+	else if (!file.is_open() && indexSearch)
+		throw ForbiddenException();
+	else if(!file.is_open() || !file.good())
+		throw NotFoundException();
+	else
+		ss << file.rdbuf();
 	return ss.str();
+}
+
+std::string Request::createAutoIndex(const std::string &path)
+{
+	std::cout << "autoindex called" << std::endl;
+	std::stringstream autoIndex;
+	autoIndex << "<html>\n<head><title>Index of /</title></head>";
+	//get the directory
+	std::string directory = path.substr(0, path.find_last_of('/'));
+	std::cout << "path: " << path << std::endl;
+	std::cout << "directory " << directory << std::endl;
+	autoIndex << "<h1>Index of " << directory << "</h1><hr><ul>";
+	try {
+        for (const auto & entry : std::filesystem::directory_iterator(directory)) {
+            autoIndex << "<li>" << entry.path() << "</li>" ;
+        }
+    } catch (const std::filesystem::filesystem_error& err) {
+        std::cerr << "Filesystem error: " << err.what() << std::endl;
+    } catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+    }
+	autoIndex << "</ul><hr></body></html>";
+	return autoIndex.str();
 }
