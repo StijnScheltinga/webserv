@@ -11,7 +11,6 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 	while (it != end)
 	{
 		std::string line = *it;
-		std::cout << "line: " << line << std::endl;
 		if (line.find('}') != std::string::npos)
 			break ;
 		std::istringstream ss(line);

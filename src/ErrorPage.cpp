@@ -41,7 +41,6 @@ std::vector<int> ErrorPage::getStatusCodesVector()
 
 void ErrorPage::addStatusCode(std::string statusCode)
 {
-	std::cout << "status code: " << statusCode << std::endl;
 	size_t length = statusCode.length();
 	if (length == 0)
 	{
@@ -57,7 +56,6 @@ void ErrorPage::addStatusCode(std::string statusCode)
 		}
 	}
 	this->statusCodes.push_back(std::stoi(statusCode));
-	std::cout << "statusCode added: " << statusCode << std::endl; 
 }
 
 void ErrorPage::printErrorPage() const

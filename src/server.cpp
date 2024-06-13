@@ -74,9 +74,7 @@ void Server::handle_request(int client_fd)
     
     int valread = read(client_fd, buffer, 1024);
 	if (valread == 0)
-    {
       remove_client(client_fd);
-    }
 	else
 	{
 		while (valread > 0)

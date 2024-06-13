@@ -197,7 +197,7 @@ std::string Config::getIndex()
 
 void Config::printConfig() const
 {
-	std::cout << "server_name: ";
+	std::cout << "\nserver_name: ";
 	for (size_t i = 0; i < server_name.size(); i++)
 		std::cout << server_name[i] << " ";
 	std::cout << std::endl;

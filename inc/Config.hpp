@@ -15,15 +15,16 @@ class Config
 		void ParseConfig();
 
 		std::vector<std::string>	serverBlock;
-		std::vector<std::string>	server_name;
+
 		std::vector<Route>			routes;
+
 		std::vector<ErrorPage> 		error_pages;
-
-
+		std::vector<std::string>	server_name;
 		int port;
 		std::string index;
 		std::string root;
 		size_t client_max_body_size;
+
 		int	serverFd;
 
 	public:

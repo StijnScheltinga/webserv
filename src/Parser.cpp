@@ -27,9 +27,9 @@ void	Parser::createConfigObjects()
 
 			std::vector<std::string>	serverBlock(configFileLines.begin() + begin + 2, configFileLines.begin() + end);
 
-			// std::cout << "\nserver block:" << std::endl;
-			// printConfigLines(serverBlock);
-			// std::cout << "\n";
+			std::cout << "\nserver block:" << std::endl;
+			printConfigLines(serverBlock);
+			std::cout << "\nend server block\n" << std::endl;
 
 			//adding server config to the config array 
 
