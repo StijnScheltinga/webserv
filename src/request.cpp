@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sys/stat.h>
 
-Request::Request(Client *client, Config *config, const char *requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
+Request::Request(Client *client, Config *config, const std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
 {
 	indexSearch = false;
 	ParseRequest();
@@ -26,6 +26,8 @@ void Request::ParseRequest()
 	request_map["Path"] = path;
 	request_map["Version"] = version;
 
+	if (method == "POST")
+		return ;
 	std::string line;
 	//skip the first line, it is parsed already.
 	std::getline(ss, line);
@@ -79,20 +81,26 @@ bool Request::isDirectory(std::string path)
 
 std::string Request::composePath(Route *route)
 {
-	std::string alias = route->getAlias();
+	std::string alias = normalizePath(route->getAlias());
 	std::string routePath = route->getPath();
 	std::string requestPath = request_map["Path"];
 	std::string path;
 	if (alias.empty())
-		path = config->getRoot() + requestPath;
+		path = normalizePath(config->getRoot()) + requestPath;
 	else
-		path = alias + "/" + requestPath.substr(routePath.length());
+	{
+		if (routePath == "/")
+			path = alias + requestPath;
+		else
+			path = alias + requestPath.substr(routePath.length());
+	}
 	if (isDirectory(path))
 	{
 		//if it is a directory we want the index file
 		indexSearch = true;
 		path += defineIndex(route);
 	}
+		path.back() == '/' ? path += defineIndex(route) : path += "/" + defineIndex(route);
 	return path;
 }
 
@@ -106,11 +114,11 @@ void Request::HandleRequest()
 			throw NotFoundException();
 		std::string path = composePath(route);
 		std::cout << "Path: " << path << std::endl;
-		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
-		// if (isCgiRequest(request_map["Path"]))
-		// 	execute_cgi(request_map["Path"]);
 
-		if (request_map["Method"] == "GET")
+		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
+		if (isCgiRequest(path))
+			execute_cgi(path);
+		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET(path);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
@@ -134,7 +142,6 @@ void Request::HandleRequest()
 		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		_serverInstance->create_write_request(response_header, client->getClientFd());
 	}
-
 }
 
 void	Request::printMap(void)

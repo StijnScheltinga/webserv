@@ -125,6 +125,7 @@ void Route::printRoute() const
 	std::cout << std::endl;
 	std::cout << "		alias: " << getAlias() << std::endl;
 	std::cout << "		index: " << getIndex() << std::endl;
+	std::cout << "		upload_dir: " << getUploadDir() << std::endl;
 	if (getAutoIndex() == true)
 		std::cout << "		autoindex: on" << std::endl;
 	else
