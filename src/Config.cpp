@@ -179,7 +179,10 @@ std::string Config::matchErrorPage(int statusCode)
 {
 	for (size_t i = 0; i < error_pages.size(); i++)
 	{
-		if (std::find(error_pages[i].getStatusCodesVector().begin(), error_pages[i].getStatusCodesVector().end(), statusCode) != error_pages[i].getStatusCodesVector().end())
+		std::cout << "going into matchErrorPage" << std::endl;
+		std::vector<int> statusCodes = error_pages[i].getStatusCodesVector();	
+		std::cout << *statusCodes.begin() << "|" << std::endl;
+		if (std::find(statusCodes.begin(), statusCodes.end(), statusCode) != statusCodes.end())
 			return error_pages[i].getPath();
 	}
 	return "";
