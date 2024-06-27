@@ -10,13 +10,13 @@ void Request::execute_cgi(std::string path)
 	if (pipe(pipe_fd) == -1)
 	{
 		std::cerr << "Failed to create pipe" << std::endl;
-		return ;
+		throw InternalServerErrorException();
 	}
 	pid_t pid = fork();
 	if (pid == -1)
 	{
 		std::cerr << "Failed to fork" << std::endl;
-		return ;
+		throw InternalServerErrorException();
 	}
 	if (pid == 0)
 	{
@@ -25,8 +25,8 @@ void Request::execute_cgi(std::string path)
 		close(pipe_fd[1]);
 		if (execve(path.c_str(), argv, envp) == -1)
 		{
-			perror("execve fail");
-			exit(1);
+			std::cerr << "Failed to execute CGI script" << std::endl;
+			throw InternalServerErrorException();
 		}
 	}
 	else
@@ -46,17 +46,14 @@ void Request::execute_cgi(std::string path)
 bool Request::isCgiRequest(std::string path)
 {
 
-	try{
-		std::string extension = path.substr(path.find_last_of('.'));
+	size_t lastDot = path.find_last_of('.');
+	if (lastDot == std::string::npos)
+		return false;
+	std::string extension = path.substr(lastDot);
 	for (std::vector<std::string>::iterator it = config->cgiExtensions.begin(); it != config->cgiExtensions.end(); it++)
 	{
 		if (*it == extension)
 			return true;
-	}
-	}
-	catch(const std::exception& e)
-	{
-		return false;
 	}
 	return false;
 }
