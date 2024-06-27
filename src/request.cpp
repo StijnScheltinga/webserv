@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sys/stat.h>
 
-Request::Request(Client *client, Config *config, const char *requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
+Request::Request(Client *client, Config *config, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
 {
 	ParseRequest();
 	HandleRequest();
@@ -28,16 +28,6 @@ void Request::ParseRequest()
 	std::string line;
 	//skip the first line, it is parsed already.
 	std::getline(ss, line);
-	while (std::getline(ss, line))
-	{
-		size_t colon_pos = line.find(':');
-		if (colon_pos != std::string::npos)
-		{
-			std::string key = line.substr(0, colon_pos);
-			std::string value = line.substr(colon_pos + 2);
-			request_map[key] = value;
-		}
-	}
 }
 Route *Request::matchRoute(std::string directory_path)
 {
@@ -103,11 +93,11 @@ void Request::HandleRequest()
 		if (!route)
 			throw NotFoundException();
 		std::string path = composePath(route);
-		std::cout << "upload directory: " <<  route->getUploadDir() << std::endl;
+		std::cout << path << std::endl;
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
-		// if (isCgiRequest(request_map["Path"]))
-		// 	execute_cgi(request_map["Path"]);
-		if (request_map["Method"] == "GET")
+		if (isCgiRequest(path))
+			execute_cgi(path);
+		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET(path);
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
@@ -127,7 +117,7 @@ void Request::HandleRequest()
 	catch (const ServerException &e)
 	{
 		std::cerr << RED << e.what() << RESET << std::endl;
-		std::string response = getErrorPage(BadRequestException());
+		std::string response = getErrorPage(e);
 		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		_serverInstance->create_write_request(response_header, client->getClientFd());
 	}
@@ -159,6 +149,7 @@ std::string Request::getErrorPath(const ServerException &e)
 std::string Request::getErrorPage(const ServerException &e)
 {
 	std::string errorPagePath = getErrorPath(e);
+	std::cout << std::endl;
 	std::ifstream file(errorPagePath);
 	if (!file.is_open() || !file.good())
 	{

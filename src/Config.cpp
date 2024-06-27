@@ -124,11 +124,11 @@ void Config::setClientMaxBodySize(std::string clientMaxBodySize)
 		}
 	}
 	if (suffix == 'k')
-		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1024;
+		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000;
 	else if (suffix == 'm')
-		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1024 * 1024;
+		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000;
 	else if (suffix == 'g')
-		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1024 * 1024 * 1024;
+		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000 * 1000;
 	else
 		this->client_max_body_size = std::stoi(clientMaxBodySize);
 }
@@ -175,11 +175,17 @@ std::vector<ErrorPage> Config::getErrorPages() const
 	return error_pages;
 }
 
+size_t Config::getClientMaxBodySize() const
+{
+	return client_max_body_size;
+}
+
 std::string Config::matchErrorPage(int statusCode)
 {
 	for (size_t i = 0; i < error_pages.size(); i++)
 	{
-		if (std::find(error_pages[i].getStatusCodesVector().begin(), error_pages[i].getStatusCodesVector().end(), statusCode) != error_pages[i].getStatusCodesVector().end())
+		std::vector<int> statusCodes = error_pages[i].getStatusCodesVector();
+		if (std::find(statusCodes.begin(), statusCodes.end(), statusCode) != statusCodes.end())
 			return error_pages[i].getPath();
 	}
 	return "";

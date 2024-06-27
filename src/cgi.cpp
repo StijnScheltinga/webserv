@@ -23,8 +23,7 @@ void Request::execute_cgi(std::string path)
 		close(pipe_fd[0]);
 		dup2(pipe_fd[1], 1);
 		close(pipe_fd[1]);
-		std::string cgi_script_path = config->getRoot() + request_map["Path"];
-		if (execve(cgi_script_path.c_str(), argv, envp) == -1)
+		if (execve(path.c_str(), argv, envp) == -1)
 		{
 			perror("execve fail");
 			exit(1);
@@ -39,7 +38,7 @@ void Request::execute_cgi(std::string path)
 		while ((bytes_read = read(pipe_fd[0], buffer, 1024)) > 0)
 			response.append(buffer, bytes_read);
 		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		write(_client_fd, response_header.c_str(), response_header.size());
+		_serverInstance->create_write_request(response_header, client->getClientFd());
 		close(pipe_fd[0]);
 	}
 }

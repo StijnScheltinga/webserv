@@ -77,16 +77,19 @@ void Server::handle_request(int client_fd)
     {
       remove_client(client_fd);
     }
+	else if (valread == -1){
+		std::cerr << "read error" << std::endl;
+		remove_client(client_fd);
+	}
 	else
 	{
 		while (valread > 0)
 		{
 			request_string.append(buffer, valread);
-			if (valread < 1024)
+			if (valread < sizeof(buffer))
 				break ;
 			valread = read(client_fd, buffer, 1024);
 		}
-		request_string.append("\0");
 
 		Client	*client = getClientPtr(client_fd);
 		if (!client)
@@ -94,8 +97,7 @@ void Server::handle_request(int client_fd)
 		Config	*config = getCorrectConfig(client);
 		if (!config)
 			return;
-
-		Request(client, config, request_string.c_str(), this);
+		Request(client, config, request_string, this);
     }
 }
 
