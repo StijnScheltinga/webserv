@@ -51,4 +51,17 @@ class InternalServerErrorException : public ServerException
 		InternalServerErrorException() : ServerException("500 Internal server error") {}
 };
 
+class RedirectionException : public ServerException
+{
+	public:
+		RedirectionException(const std::string &url, int code) : ServerException("301 Moved Permanently"), _url(url), _code(code) {}
+		std::string getUrl() const { return _url; }
+		int getCode() const { return _code; }
+
+	private:
+		std::string _url;
+		int _code;
+};
+
+
 #endif

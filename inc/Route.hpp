@@ -3,6 +3,7 @@
 
 # include <string>
 # include <vector>
+# include "Redirect.hpp"
 # include "CgiConfig.hpp"
 
 class Route
@@ -14,6 +15,8 @@ class Route
 		bool 		autoindex;
 		std::string index;
 		std::string upload_dir;
+		Redirect	redirect;
+
 		
 		void setPath(std::string path);
 		void setAllowedMethods(std::string line);
@@ -35,6 +38,7 @@ class Route
 		std::string getIndex() const;
 		bool getAutoIndex() const;
 		std::string getUploadDir() const;
+		Redirect getRedirect() const;
 		// void setUploadDir(std::string upload_dir);
 		// void setCgiConfig(CgiConfig cgi_config);
 
