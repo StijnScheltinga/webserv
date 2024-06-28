@@ -14,7 +14,6 @@ class Route
 		bool 		autoindex;
 		std::string index;
 		std::string upload_dir;
-		CgiConfig	cgi_config;
 		
 		void setPath(std::string path);
 		void setAllowedMethods(std::string line);
@@ -22,6 +21,7 @@ class Route
 		void setIndex(std::string index);
 		void setAutoIndex(std::string autoindex);
 		void setUploadDir(std::string upload_dir);
+		void setUpRedirect(std::string line);
 
 		void createAutoIndex();
 

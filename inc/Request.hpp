@@ -9,8 +9,11 @@
 #include <filesystem>
 
 const std::string HTTP_OK = "HTTP/1.1 200 OK\r\n";
-const std::string HTTP_NOT_FOUND = "HTTP/1.1 404 Not Found\r\n";
 const std::string BAD_REQUEST = "HTTP/1.1 400 Bad Request\r\n";
+const std::string HTTP_FORBIDDEN = "HTTP/1.1 403 Forbidden\r\n";
+const std::string HTTP_NOT_FOUND = "HTTP/1.1 404 Not Found\r\n";
+const std::string HTTP_METHOD_NOT_ALLOWED = "HTTP/1.1 405 Method Not Allowed\r\n";
+const std::string HTTP_CONTENT_TOO_LARGE = "HTTP/1.1 413 Content Too Large\r\n";
 const std::string SERVER_ERROR = "HTTP/1.1 500 server error\r\n";
 const std::string CONTENT_LENGTH = "Content-Length: ";
 
@@ -23,15 +26,16 @@ class Request
 		void HandleRequest();
 		std::string Handle_GET(std::string path);
 		std::string Handle_POST(std::string path, Route *route);
-		std::string Handle_DELETE();
+		void		Handle_DELETE(std::string path);
 		std::string find_file_name(std::string &request_string);
 		std::string find_boundary(std::string &request_string);
 		std::string getErrorPage(const ServerException &e);
 		std::string getErrorPath(const ServerException &e);
+		std::string getResponseCode(const ServerException &e);
 		void	printMap();
 		
 		bool isCgiRequest(std::string path);
-		void execute_cgi(std::string path);
+		void executeCGI(std::string path);
 		Route *matchRoute(std::string path);
 		std::string defineIndex(Route *route);
 		bool isDirectory(std::string path);

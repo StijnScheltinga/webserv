@@ -27,6 +27,8 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 			setAutoIndex(value);
 		else if (key == "client_body_temp_path")
 			setUploadDir(value);
+		// else if (key == "return")
+		// 	setUpRedirect(line);
 		else
 		{
 			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;
@@ -78,6 +80,13 @@ void Route::setUploadDir(std::string upload_dir)
 {
 	this->upload_dir = upload_dir;
 }
+
+// void Route::setUpRedirect(std::string line)
+// {
+// 	std::istringstream iss(line);
+// 	std::string returnKeyword, code, url;
+// 	iss >> returnKeyword >> code >> url;
+// }
 
 // void Route::setCgiConfig(CgiConfig cgi_config)
 // {

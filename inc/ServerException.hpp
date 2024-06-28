@@ -33,6 +33,18 @@ class NotFoundException : public ServerException
 		NotFoundException() : ServerException("404 Page not found") {}
 };
 
+class MethodNotAllowedException : public ServerException
+{
+	public:
+		MethodNotAllowedException() : ServerException("405 Method not allowed") {}
+};
+
+class ContentTooLargeException : public ServerException
+{
+	public:
+		ContentTooLargeException() : ServerException("413 Content too large") {}
+};
+
 class InternalServerErrorException : public ServerException
 {
 	public:

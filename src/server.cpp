@@ -69,36 +69,61 @@ void	Server::process_write_request(int client_fd)
 
 void Server::handle_request(int client_fd)
 {
-    char buffer[1024] = {0};
-    std::string request_string;
+    char buffer[1024];
+    std::string requestString;
+	int valread = 0;
     
-    int valread = read(client_fd, buffer, 1024);
-	if (valread == 0)
-    {
+	// read initial part of request (headers)
+    valread = read(client_fd, buffer, sizeof(buffer));
+	if (valread <= 0)
+	{
       remove_client(client_fd);
-    }
-	else if (valread == -1){
-		std::cerr << "read error" << std::endl;
-		remove_client(client_fd);
+	  return ;
+	}
+	requestString.append(buffer, valread);
+	size_t contentLength = 0;
+	size_t endOfHeaders = requestString.find("\r\n\r\n");
+	// determine the content length of the request after the headers
+	if (endOfHeaders != std::string::npos)
+	{
+		endOfHeaders += 4;
+		size_t contentLengthPos = 0;
+		std::string headers = requestString.substr(0, endOfHeaders);
+		if ((contentLengthPos = headers.find("Content-Length:")) != std::string::npos)
+			contentLength = std::stoul(headers.substr(contentLengthPos + 16));
 	}
 	else
 	{
-		while (valread > 0)
-		{
-			request_string.append(buffer, valread);
-			if (valread < sizeof(buffer))
-				break ;
-			valread = read(client_fd, buffer, 1024);
-		}
+		std::cerr << "No headers found\n";
+		remove_client(client_fd);
+		return ;
+	}
 
-		Client	*client = getClientPtr(client_fd);
-		if (!client)
+	// read the rest of the request after the headers into the request string
+	while (requestString.size() < endOfHeaders + contentLength)
+	{
+		valread = read(client_fd, buffer, sizeof(buffer));
+		if (valread <= 0)
+		{
+			remove_client(client_fd);
 			return ;
-		Config	*config = getCorrectConfig(client);
-		if (!config)
-			return;
-		Request(client, config, request_string, this);
-    }
+		}
+		requestString.append(buffer, valread);
+	}
+	// check if the request matches the content length
+	if (requestString.size() < contentLength + endOfHeaders)
+	{
+		std::cerr << "Incomplete request\n";
+		remove_client(client_fd);
+		return ;
+	}
+	Client	*client = getClientPtr(client_fd);
+	if (!client)
+		return ;
+	Config	*config = getCorrectConfig(client);
+	if (!config)
+		return;
+	Request(client, config, requestString, this);
 }
 
 //currently no checks for max clients

@@ -1,13 +1,16 @@
 #include "../inc/Request.hpp"
 #include "../inc/ServerException.hpp"
+#include <algorithm>
 #include <cstdio>
 
-std::string Request::Handle_DELETE()
+void	Request::Handle_DELETE(std::string path)
 {
-	std::cout << "Path: " << request_map["Path"] << std::endl;
-	int result = remove(request_map["Path"].c_str());
+	std::vector<std::string> allowed_methods = route->getAllowedMethods();
+	if (std::find(allowed_methods.begin(), allowed_methods.end(), "DELETE") == allowed_methods.end() && !allowed_methods.empty())
+		throw MethodNotAllowedException();
+	int result = remove(path.c_str());
 	if (result == 0)
-		return "";
+		return ;
 	else
 		throw InternalServerErrorException();
 }

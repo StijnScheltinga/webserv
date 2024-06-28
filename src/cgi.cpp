@@ -2,7 +2,7 @@
 #include "../inc/Request.hpp"
 
 
-void Request::execute_cgi(std::string path)
+void Request::executeCGI(std::string path)
 {
 	char *const argv[] = {NULL};
 	char *const envp[] = {NULL};

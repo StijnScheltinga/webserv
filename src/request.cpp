@@ -102,7 +102,7 @@ void Request::HandleRequest()
 
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		if (isCgiRequest(path))
-			execute_cgi(path);
+			executeCGI(path);
 		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET(path);
@@ -115,20 +115,36 @@ void Request::HandleRequest()
 			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			_serverInstance->create_write_request(response, client->getClientFd());
 		}
-		// else if (request_map["Method"] == "DELETE")
-		// {
-		// 	Handle_DELETE();
-		// }
+		else if (request_map["Method"] == "DELETE")
+			Handle_DELETE(path);
 	}
 	catch (const ServerException &e)
 	{
 		std::cerr << RED << e.what() << RESET << std::endl;
 		std::string response = getErrorPage(e);
-		std::string response_header = BAD_REQUEST + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, client->getClientFd());
+		std::string responseHeader= getResponseCode(e) + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		_serverInstance->create_write_request(responseHeader, client->getClientFd());
 	}
 }
 
+std::string Request::getResponseCode(const ServerException &e)
+{
+	if (dynamic_cast<const NotFoundException *>(&e))
+		return HTTP_NOT_FOUND;
+	if (dynamic_cast<const BadRequestException *>(&e))
+		return BAD_REQUEST;
+	if (dynamic_cast<const ForbiddenException *>(&e))
+		return HTTP_FORBIDDEN;
+	if (dynamic_cast<const InternalServerErrorException *>(&e))
+		return SERVER_ERROR;
+	if (dynamic_cast<const MethodNotAllowedException *>(&e))
+		return HTTP_METHOD_NOT_ALLOWED;
+	if (dynamic_cast<const ContentTooLargeException *>(&e))
+		return HTTP_CONTENT_TOO_LARGE;
+	else
+		return SERVER_ERROR;
+
+}
 void	Request::printMap(void)
 {
 	std::map<std::string, std::string>::iterator	it = request_map.begin();
@@ -147,6 +163,10 @@ std::string Request::getErrorPath(const ServerException &e)
 		return config->matchErrorPage(400);
 	else if (dynamic_cast<const ForbiddenException *>(&e))
 		return (config->matchErrorPage(403));
+	else if (dynamic_cast<const MethodNotAllowedException *>(&e))
+		return (config->matchErrorPage(405));
+	else if (dynamic_cast<const ContentTooLargeException *>(&e))
+		return (config->matchErrorPage(413));
 	else if (dynamic_cast<const InternalServerErrorException *>(&e))
 		return (config->matchErrorPage(500));
 	else
@@ -160,7 +180,7 @@ std::string Request::getErrorPage(const ServerException &e)
 	if (!file.is_open() || !file.good())
 	{
 		std::cerr << "Error page not found" << std::endl;
-		exit(1);
+		
 	}
 	std::stringstream ss;
 	ss << file.rdbuf();
@@ -186,6 +206,10 @@ std::string Request::normalizePath(std::string path)
 }
 std::string Request::Handle_GET(std::string path)
 {
+	std::vector<std::string> allowed_methods = route->getAllowedMethods();
+	if (std::find(allowed_methods.begin(), allowed_methods.end(), "GET") == allowed_methods.end() && !allowed_methods.empty())
+		throw MethodNotAllowedException();
+	
 	std::ifstream file(path);
 	std::stringstream ss;
 	//specific to autoindex
