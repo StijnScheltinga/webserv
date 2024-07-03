@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 # HTML response
-print("<html>")
-print("<head><title>Simple Python Script</title></head>")
-print("<body>")
-print("<h1>Hello from Python!</h1>")
-print("</body>")
-print("</html>")
+# Create an infinite loop
+
+while True:
+	print("Content-type: text/html\n")
+	print("<html><head><title>Sample CGI</title></head>")
+	print("<body>")
+	print("<h1>This is a sample CGI script</h1>")
+	print("</body></html>")
