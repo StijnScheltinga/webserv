@@ -1,5 +1,9 @@
 #include <iostream>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "../inc/Request.hpp"
+
+#define MAX_CGI_EXECUTION_TIME 5
 
 
 void Request::executeCGI(std::string path)
@@ -34,6 +38,20 @@ void Request::executeCGI(std::string path)
 		close(pipe_fd[1]);
 		char buffer[1024];
 		int bytes_read;
+		pid_t result;
+		int status;
+		time_t start_time = time(nullptr);
+		while (waitpid(pid, &status, WNOHANG) == 0)
+		{
+			if (time(nullptr) - start_time > MAX_CGI_EXECUTION_TIME)
+			{
+				kill(pid, SIGKILL);
+				waitpid(pid, &status, 0);
+				std::cerr << "CGI script execution time exceeded" << std::endl;
+				throw InternalServerErrorException();
+			}
+
+		}
 		std::string response;
 		while ((bytes_read = read(pipe_fd[0], buffer, 1024)) > 0)
 			response.append(buffer, bytes_read);

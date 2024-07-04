@@ -96,9 +96,9 @@ void Request::HandleRequest()
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
-		
+		if (route->getRedirect().getUrl() != "")
+			throw RedirectionException(route->getRedirect().getUrl(), route->getRedirect().getCode());
 		std::string path = composePath(route);
-		std::cout << "Path: " << path << std::endl;
 
 		std::cout << MAGENTA << "Handling a " << request_map["Method"] << " request!" << RESET << std::endl;
 		if (isCgiRequest(path))
@@ -117,6 +117,15 @@ void Request::HandleRequest()
 		}
 		else if (request_map["Method"] == "DELETE")
 			Handle_DELETE(path);
+	}
+	catch (const RedirectionException &e)
+	{
+		std::cerr << BLUE << "Redirection to " << e.getUrl() << RESET << std::endl;
+		std::string responseBody = "<html><body><h1>301 Moved Permanently</h1></body></html>";
+		std::string responseHeader = "HTTP/1.1 " + std::to_string(e.getCode()) + " Moved\r\n";
+		responseHeader += "Location: " + e.getUrl() + "\r\n";
+		responseHeader += CONTENT_LENGTH + std::to_string(responseBody.size()) + "\r\n\r\n" + responseBody;
+		_serverInstance->create_write_request(responseHeader, client->getClientFd());
 	}
 	catch (const ServerException &e)
 	{
@@ -180,7 +189,7 @@ std::string Request::getErrorPage(const ServerException &e)
 	if (!file.is_open() || !file.good())
 	{
 		std::cerr << "Error page not found" << std::endl;
-		
+		throw NotFoundException();
 	}
 	std::stringstream ss;
 	ss << file.rdbuf();

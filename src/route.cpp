@@ -27,8 +27,8 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 			setAutoIndex(value);
 		else if (key == "client_body_temp_path")
 			setUploadDir(value);
-		// else if (key == "return")
-		// 	setUpRedirect(line);
+		else if (key == "return")
+			setUpRedirect(line);
 		else
 		{
 			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;
@@ -56,7 +56,14 @@ void Route::setAllowedMethods(std::string line)
 	iss >> allowedMethodsKeyword;
 
 	while (iss >> value)
+	{
+		if (value != "DELETE" && value != "GET" && value != "POST")
+			{
+				std::cerr << "Invalid method: \"" << value << "\" on line: " << line <<  std::endl;
+				exit(1);
+			}
 		allowed_methods.push_back(value);
+	}
 }
 
 void Route::setAlias(std::string alias)
@@ -81,12 +88,31 @@ void Route::setUploadDir(std::string upload_dir)
 	this->upload_dir = upload_dir;
 }
 
-// void Route::setUpRedirect(std::string line)
-// {
-// 	std::istringstream iss(line);
-// 	std::string returnKeyword, code, url;
-// 	iss >> returnKeyword >> code >> url;
-// }
+void Route::setUpRedirect(std::string line)
+{
+	std::istringstream iss(line);
+	std::string returnKeyword, statusCodeString, url;
+
+	if (!(iss >> returnKeyword >> statusCodeString >> url))
+	{
+		std::cerr << "Failed to parse line: " << line << std::endl;
+		exit(1);
+	}
+	int code;
+	try {
+		code = std::stoi(statusCodeString);
+	}
+	catch (std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		exit(1);
+	}
+	if (code < 100 || code > 599)
+	{
+		std::cerr << "Invalid status code: " << code << std::endl;
+		exit(1);
+	}
+	redirect = Redirect(url, code);
+}
 
 // void Route::setCgiConfig(CgiConfig cgi_config)
 // {
@@ -121,7 +147,11 @@ bool Route::getAutoIndex() const
 std::string Route::getUploadDir() const
 {
 	return (this->upload_dir);
+}
 
+Redirect Route::getRedirect() const
+{
+	return (this->redirect);
 }
 
 void Route::printRoute() const
@@ -139,5 +169,8 @@ void Route::printRoute() const
 		std::cout << "		autoindex: on" << std::endl;
 	else
 		std::cout << "		autoindex: off" << std::endl;
+	if (getRedirect().getUrl() != "")
+		std::cout << "		redirect: " << getRedirect().getCode() << " " << getRedirect().getUrl() << std::endl;
+	
 }
 
