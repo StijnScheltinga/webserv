@@ -155,6 +155,13 @@ void Config::setIndex(std::string index)
 	this->index = index;
 }
 
+void Config::setHost(std::string host)
+{
+	if (host == "localhost")
+		host = "127.0.0.1";
+	this->host = host;
+}
+
 int Config::getPort() const
 {
 	return port;
@@ -163,6 +170,11 @@ int Config::getPort() const
 int Config::getServerFd()
 {
 	return this->serverFd;
+}
+
+std::string Config::getHost() const
+{
+	return this->host;
 }
 
 std::string	Config::getRoot() const
@@ -207,6 +219,7 @@ void Config::printConfig() const
 		std::cout << server_name[i] << " ";
 	std::cout << std::endl;
 	std::cout << "port: " << port << std::endl;
+	std::cout << "host: " << host << std::endl;
 	std::cout << "client_max_body_size: " << client_max_body_size << std::endl;
 	std::cout << "root: " << root << std::endl;
 	std::cout << "error_pages: " << std::endl;

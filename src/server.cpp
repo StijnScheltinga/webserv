@@ -12,12 +12,11 @@ int Server::listen_to_socket()
 	int serverFd = socket(AF_INET, SOCK_STREAM, 0);
 	int servernum = serverFds.size();
 	if (serverFd == -1)
-	{
 		exitError(SOCK_FAIL);
-	}
 	std::memset(&sock_addr, 0, sizeof(sock_addr));
 	sock_addr.sin_family = AF_INET;
-	sock_addr.sin_addr.s_addr = INADDR_ANY;
+	if (inet_pton(AF_INET, configs[servernum].getHost().c_str(), &sock_addr.sin_addr.s_addr) <= 0)
+		exitError(INET_PTON_ERROR);
 	std::cout << configs[servernum].getPort() << std::endl;
 	sock_addr.sin_port = htons(configs[servernum].getPort());
 	sock_addr_len = sizeof(sock_addr);
