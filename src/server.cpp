@@ -227,6 +227,11 @@ Config *Server::getCorrectConfig(Client *client)
 	return NULL;
 }
 
+std::vector<std::string> &Server::getUploadedFiles()
+{
+	return uploaded_files;
+}
+
 Server::Server(std::vector<Config> &configVector) : configs(configVector)
 {
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;

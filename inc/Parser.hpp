@@ -25,6 +25,7 @@ class Parser
 		~Parser();
 
 		std::vector<Config>			getConfigVector();
+		bool						isDuplicateHostAndPort(Config config);
 		
 };
 

@@ -1,7 +1,7 @@
 #ifndef ERROR_HPP
 # define ERROR_HPP
 
-# define WEBSERV_ERRMAX 12
+# define WEBSERV_ERRMAX 13
 
 # include <iostream>
 
@@ -19,6 +19,7 @@ typedef enum webserv_errno
 	ACCEPT_ERROR,
 	SYNTAX_ERROR,
 	INET_PTON_ERROR,
+	NOSERVER_ERROR,
 
 }t_webserv_errno;
 
@@ -36,6 +37,7 @@ static const char *g_webserv_errors[WEBSERV_ERRMAX] =
 	"accept error!",
 	"syntax error!",
 	"host addres is not properly formatted!",
+	"No server block found in config file!",
 };
 
 void	exitError(int webservErrno);

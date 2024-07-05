@@ -40,6 +40,8 @@ class Server
 		void process_write_request(int client_fd);
         void readRequest();
         void sendResponse();
+
+        std::vector<std::string>& getUploadedFiles();
 		
 
         // int set_fds(fd_set *set, std::vector<int> client_fds);
@@ -73,6 +75,7 @@ class Server
         std::string upload_dir;
         std::vector<std::string> cgi_extensions;
         std::vector<std::string> server_name;
+        std::vector<std::string> uploaded_files;
         
 		Client	*getClientPtr(int clientFd);
 		Config	*getCorrectConfig(Client *client);

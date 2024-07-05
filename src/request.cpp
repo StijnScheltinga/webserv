@@ -106,8 +106,7 @@ void Request::HandleRequest()
 		else if (request_map["Method"] == "GET")
 		{
 			std::string response = Handle_GET(path);
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-			_serverInstance->create_write_request(response_header, client->getClientFd());
+			_serverInstance->create_write_request(response, client->getClientFd());
 		}
 		else if (request_map["Method"] == "POST")
 		{
@@ -230,7 +229,8 @@ std::string Request::Handle_GET(std::string path)
 		throw NotFoundException();
 	else
 		ss << file.rdbuf();
-	return ss.str();
+	std::string response = HTTP_OK + CONTENT_LENGTH + std::to_string(ss.str().size()) + "\r\n\r\n" + ss.str();
+	return response;
 }
 
 std::string Request::createAutoIndex(const std::string &path)

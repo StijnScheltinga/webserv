@@ -3,7 +3,7 @@
 #include <sys/wait.h>
 #include "../inc/Request.hpp"
 
-#define MAX_CGI_EXECUTION_TIME 5
+#define MAX_CGI_EXECUTION_TIME 2 // seconds
 
 
 void Request::executeCGI(std::string path)
@@ -41,6 +41,8 @@ void Request::executeCGI(std::string path)
 		pid_t result;
 		int status;
 		time_t start_time = time(nullptr);
+
+		//wait for child process to finish
 		while (waitpid(pid, &status, WNOHANG) == 0)
 		{
 			if (time(nullptr) - start_time > MAX_CGI_EXECUTION_TIME)

@@ -101,8 +101,14 @@ char Config::getMaxClientBodySizeSuffix(std::string &clientMaxBodySize)
 		suffix = 'g';
 		clientMaxBodySize.pop_back();
 	}
-	else
+	else if (clientMaxBodySize.end()[-1] == 'b' || clientMaxBodySize.end()[-1] == 'B' || clientMaxBodySize.end()[-1] == '\0')
 		suffix = 'b';
+	else
+	{
+		std::cerr << "Invalid suffix for client_max_body_size" << std::endl;
+		exit(1);
+	
+	}
 	return suffix;
 }
 
@@ -129,8 +135,13 @@ void Config::setClientMaxBodySize(std::string clientMaxBodySize)
 		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000;
 	else if (suffix == 'g')
 		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000 * 1000;
-	else
+	else if (suffix == 'b' || suffix == '\0')
 		this->client_max_body_size = std::stoi(clientMaxBodySize);
+	else
+		{
+			std::cerr << "Invalid suffix for client_max_body_size" << std::endl;
+			exit(1);
+		}
 }
 
 void Config::setErrorPage(std::string errorPage)

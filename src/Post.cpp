@@ -46,6 +46,7 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (boundary_pos == std::string::npos)
 	{
 		std::cerr << "Boundary not found" << std::endl;
+		ofs.close();
 		throw InternalServerErrorException();
 	}
 	size_t content_start = request_string.find("\r\n\r\n", boundary_pos) + 4;
@@ -53,6 +54,7 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (content_end == std::string::npos)
 	{
 		std::cerr << "End boundary not found" << std::endl;
+		ofs.close();
 		throw InternalServerErrorException();
 	}
 	content_end -= 4;
@@ -60,6 +62,7 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (content.size() > config->getClientMaxBodySize())
 	{
 		std::cerr << "File too large" << std::endl;
+		ofs.close();
 		throw ContentTooLargeException();
 	}
 
@@ -68,5 +71,14 @@ std::string Request::Handle_POST(std::string path, Route *route)
 
 	ofs.write(content.c_str(), content.size());
 	ofs.close();
+	std::vector<std::string> &uploaded_files = _serverInstance->getUploadedFiles();
+	if (std::find(uploaded_files.begin(), uploaded_files.end(), upload_path) == uploaded_files.end())
+	{
+		std::cout << "uploading file: " << upload_path << " to server" << std::endl;
+		uploaded_files.push_back(upload_path);
+	}
+	else
+		std::cout << "file already exists" << std::endl;
+
 	return response_string;
 }
