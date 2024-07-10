@@ -212,11 +212,32 @@ std::string Request::normalizePath(std::string path)
 		normalizedPath.erase(0, 1);
 	return normalizedPath;
 }
+
+std::string Request::handleFavicon()
+{
+	std::ifstream file("favicon/favicon.ico", std::ios::binary);
+	if (file.is_open())
+	{
+		std::ostringstream ss;
+		ss << file.rdbuf();
+		std::string fileContent = ss.str();
+		std::string response = HTTP_OK;
+		response += CONTENT_LENGTH;
+		response += std::to_string(fileContent.size());
+		response += "\r\n\r\n";
+		response += fileContent;
+		return response;
+	}
+	std::cerr << "favicon.ico not found in favicon directory. Please make sure you have a favicon.ico file in the favicon directory" << std::endl;
+	throw NotFoundException();
+}
 std::string Request::Handle_GET(std::string path)
 {
 	std::vector<std::string> allowed_methods = route->getAllowedMethods();
 	if (std::find(allowed_methods.begin(), allowed_methods.end(), "GET") == allowed_methods.end() && !allowed_methods.empty())
 		throw MethodNotAllowedException();
+	if (request_map["Path"] == "/favicon.ico")
+		return handleFavicon();
 	
 	std::ifstream file(path);
 	std::stringstream ss;
