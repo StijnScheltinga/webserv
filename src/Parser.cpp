@@ -5,6 +5,16 @@ Parser::Parser(char *configPath) : configFilePath(configPath) {createConfigObjec
 
 Parser::~Parser() {}
 
+bool Parser::isDuplicateHostAndPort(Config config)
+{
+	std::vector<Config>::iterator it;
+	for (it = configVector.begin(); it != configVector.end(); it++)
+	{
+		if (config.getHost() == it->getHost() && config.getPort() == it->getPort())
+			return true;
+	}
+	return false;
+}
 //call Config constructor for every server block, put config object in the configVector
 void	Parser::createConfigObjects()
 {
@@ -34,7 +44,8 @@ void	Parser::createConfigObjects()
 			//adding server config to the config array 
 
 			Config	newConfig(serverBlock);
-			configVector.push_back(newConfig);
+			if (!isDuplicateHostAndPort(newConfig))
+				configVector.push_back(newConfig);
 		}
 		//if server is found and there is something behind server
 		else if (configFileLines[i].find("server") != std::string::npos)
@@ -45,7 +56,8 @@ void	Parser::createConfigObjects()
 		//go to next server block
 		i += len;
 	}
-	// check if config is empty if so exitError()
+	if (configVector.empty())
+		exitError(NOSERVER_ERROR);
 }
 
 //performs a syntax check and throws an error if syntax is not good

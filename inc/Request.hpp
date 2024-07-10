@@ -27,6 +27,8 @@ class Request
 		std::string Handle_GET(std::string path);
 		std::string Handle_POST(std::string path, Route *route);
 		void		Handle_DELETE(std::string path);
+		std::string handleFavicon();
+		bool	deleteFile(std::string path);
 		std::string find_file_name(std::string &request_string);
 		std::string find_boundary(std::string &request_string);
 		std::string getErrorPage(const ServerException &e);
