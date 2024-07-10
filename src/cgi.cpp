@@ -43,14 +43,41 @@ void Request::executeCGI(std::string path)
 		time_t start_time = time(nullptr);
 
 		//wait for child process to finish
-		while (waitpid(pid, &status, WNOHANG) == 0)
+		while (true)
 		{
-			if (time(nullptr) - start_time > MAX_CGI_EXECUTION_TIME)
+			result = waitpid(pid, &status, WNOHANG);
+			if (result == 0)
 			{
-				kill(pid, SIGKILL);
-				waitpid(pid, &status, 0);
-				std::cerr << "CGI script execution time exceeded" << std::endl;
+				if (time(nullptr) - start_time >= MAX_CGI_EXECUTION_TIME)
+				{
+					kill(pid, SIGKILL);
+					waitpid(pid, &status, 0);
+					std::cerr << "CGI script execution time exceeded" << std::endl;
+					throw InternalServerErrorException();
+				}
+			}
+			else if (result == -1)
+			{
+				std::cerr << "Waitpid fail" << std::endl;
 				throw InternalServerErrorException();
+			}
+			else
+			{
+				if (WIFEXITED(status))
+				{
+					if (WEXITSTATUS(status) != 0)
+					{
+						std::cerr << "CGI script exited with status " << WEXITSTATUS(status) << std::endl;
+						throw InternalServerErrorException();
+					}
+					break;
+				}
+				if (WIFSIGNALED(status))
+				{
+					std::cerr << "CGI script was terminated by signal " << WTERMSIG(status) << std::endl;
+					throw InternalServerErrorException();
+				}
+				break;
 			}
 
 		}

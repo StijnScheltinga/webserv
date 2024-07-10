@@ -101,13 +101,16 @@ char Config::getMaxClientBodySizeSuffix(std::string &clientMaxBodySize)
 		suffix = 'g';
 		clientMaxBodySize.pop_back();
 	}
-	else if (clientMaxBodySize.end()[-1] == 'b' || clientMaxBodySize.end()[-1] == 'B' || clientMaxBodySize.end()[-1] == '\0')
+	else if (isdigit(clientMaxBodySize.end()[-1]) || clientMaxBodySize.end()[-1] == 'b' || clientMaxBodySize.end()[-1] == 'B')
+	{
+		if (clientMaxBodySize.end()[-1] == 'b' || clientMaxBodySize.end()[-1] == 'B')
+			clientMaxBodySize.pop_back();
 		suffix = 'b';
+	}
 	else
 	{
 		std::cerr << "Invalid suffix for client_max_body_size" << std::endl;
 		exit(1);
-	
 	}
 	return suffix;
 }
@@ -135,7 +138,7 @@ void Config::setClientMaxBodySize(std::string clientMaxBodySize)
 		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000;
 	else if (suffix == 'g')
 		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000 * 1000;
-	else if (suffix == 'b' || suffix == '\0')
+	else if (suffix == 'b')
 		this->client_max_body_size = std::stoi(clientMaxBodySize);
 	else
 		{

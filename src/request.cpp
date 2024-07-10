@@ -18,8 +18,6 @@ Request::~Request() {}
 
 void Request::ParseRequest()
 {
-	std::cout << "request string:" << std::endl;
-	std::cout << requestString << std::endl;
 	//First line always has the method, path and version.
 	std::istringstream ss(requestString);
 	std::string method, path, version;
@@ -106,7 +104,6 @@ std::string Request::composePath(Route *route)
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
-	printMap();
 	try
 	{
 		Route *route = matchRoute(request_map["Path"]);
@@ -127,7 +124,6 @@ void Request::HandleRequest()
 		else if (request_map["Method"] == "POST")
 		{
 			std::string response = Handle_POST(path, route);
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			_serverInstance->create_write_request(response, client->getClientFd());
 		}
 		else if (request_map["Method"] == "DELETE")

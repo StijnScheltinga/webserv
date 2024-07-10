@@ -25,14 +25,42 @@ std::string Request::find_boundary(std::string &request_string)
 	return (request_string.substr(boundary_pos, boundary_end_pos - boundary_pos));
 }
 
-std::string Request::Handle_POST(std::string path, Route *route)
+std::string Request::handlePlainText(std::string path)
 {
-	std::vector <std::string> allowed_methods = route->getAllowedMethods();
-	if (std::find(allowed_methods.begin(), allowed_methods.end(), "POST") == allowed_methods.end() && !allowed_methods.empty())
-		throw MethodNotAllowedException();
+	size_t content_start = requestString.find("\r\n\r\n");
+	if (content_start == std::string::npos)
+	{
+		std::cerr << "Content not found" << std::endl;
+		throw InternalServerErrorException();
+	}
+	std::string content = requestString.substr(content_start + 4);
+	if (content.size() > config->getClientMaxBodySize())
+	{
+		std::cerr << "File too large" << std::endl;
+		throw ContentTooLargeException();
+	}
+	
+	std::string upload_path = route->getUploadDir() + "/default_file";
+	std::cout << "upload path: " << upload_path << std::endl;
+	std::ofstream ofs(upload_path.c_str(), std::ios::binary);
+	if (!ofs.is_open())
+	{
+		std::cerr << "Error opening file" << std::endl;
+		throw InternalServerErrorException();
+	}
+	ofs << content;
+	std::string response = "POST request received\n";
+	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+	return response_string;
+}
 
+
+std::string Request::handleMultiPart(std::string path)
+{
 	std::string request_string(requestString);
 	std::string file_name = find_file_name(request_string);
+	if (file_name.empty())
+		file_name = "default_file";
 	std::string boundary = "--" + find_boundary(request_string);
 	std::string upload_path = route->getUploadDir() + "/" + file_name;
 	std::ofstream ofs(upload_path.c_str(), std::ios::binary);
@@ -46,7 +74,6 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (boundary_pos == std::string::npos)
 	{
 		std::cerr << "Boundary not found" << std::endl;
-		ofs.close();
 		throw InternalServerErrorException();
 	}
 	size_t content_start = request_string.find("\r\n\r\n", boundary_pos) + 4;
@@ -54,7 +81,6 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (content_end == std::string::npos)
 	{
 		std::cerr << "End boundary not found" << std::endl;
-		ofs.close();
 		throw InternalServerErrorException();
 	}
 	content_end -= 4;
@@ -62,15 +88,10 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (content.size() > config->getClientMaxBodySize())
 	{
 		std::cerr << "File too large" << std::endl;
-		ofs.close();
 		throw ContentTooLargeException();
 	}
-
-	std::string response = "POST request received\n";
-	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-
 	ofs.write(content.c_str(), content.size());
-	ofs.close();
+
 	std::vector<std::string> &uploaded_files = _serverInstance->getUploadedFiles();
 	if (std::find(uploaded_files.begin(), uploaded_files.end(), upload_path) == uploaded_files.end())
 	{
@@ -79,6 +100,20 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	}
 	else
 		std::cout << "file already exists" << std::endl;
-
+	
+	std::string response = "POST request received\n";
+	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 	return response_string;
+}
+
+std::string Request::Handle_POST(std::string path, Route *route)
+{
+	std::vector <std::string> allowed_methods = route->getAllowedMethods();
+	if (std::find(allowed_methods.begin(), allowed_methods.end(), "POST") == allowed_methods.end() && !allowed_methods.empty())
+		throw MethodNotAllowedException();
+
+	if (request_map["Content-Type"].find("multipart/form-data") != std::string::npos)
+		return handleMultiPart(path);
+	else
+		return handlePlainText(path);
 }
