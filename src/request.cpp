@@ -18,6 +18,8 @@ Request::~Request() {}
 
 void Request::ParseRequest()
 {
+	std::cout << "request string:" << std::endl;
+	std::cout << requestString << std::endl;
 	//First line always has the method, path and version.
 	std::istringstream ss(requestString);
 	std::string method, path, version;
@@ -25,7 +27,20 @@ void Request::ParseRequest()
 	request_map["Method"] = method;
 	request_map["Path"] = path;
 	request_map["Version"] = version;
+
+	std::string line;
+    while (std::getline(ss, line)) 
+	{
+        size_t delimiter_pos = line.find(':');
+        if (delimiter_pos != std::string::npos) 
+		{
+            std::string key = line.substr(0, delimiter_pos);
+            std::string value = line.substr(delimiter_pos + 1);
+            request_map[key] = value;
+        }
+	}
 }
+
 Route *Request::matchRoute(std::string directory_path)
 {
 	std::vector<Route>&	routes = config->getRoutes();
@@ -91,6 +106,7 @@ std::string Request::composePath(Route *route)
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
+	printMap();
 	try
 	{
 		Route *route = matchRoute(request_map["Path"]);
@@ -187,10 +203,7 @@ std::string Request::getErrorPage(const ServerException &e)
 	std::cout << std::endl;
 	std::ifstream file(errorPagePath);
 	if (!file.is_open() || !file.good())
-	{
 		std::cerr << "Error page not found" << std::endl;
-		throw NotFoundException();
-	}
 	std::stringstream ss;
 	ss << file.rdbuf();
 	return ss.str();
