@@ -7,10 +7,11 @@
 #include <fstream>
 #include <sys/stat.h>
 
-Request::Request(Client *client, Config *config, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
+Request::Request(Client *client, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), requestString(requestString)
 {
 	indexSearch = false;
 	ParseRequest();
+	ChooseServerConfig();
 	HandleRequest();
 }
 
@@ -101,6 +102,11 @@ std::string Request::composePath(Route *route)
 	}
 	std::cout << path << std::endl;
 	return path;
+}
+
+void	Request::ChooseServerConfig()
+{
+	std::vector<Config*>	configs = _serverInstance.
 }
 
 //make a write request first and then check for availability to write to client_fd

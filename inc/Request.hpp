@@ -20,7 +20,7 @@ const std::string CONTENT_LENGTH = "Content-Length: ";
 class Request
 {
 	public:
-		Request(Client *client, Config *config, std::string requestString, Server *serverInstance);
+		Request(Client *client, std::string requestString, Server *serverInstance);
 		~Request();
 		void ParseRequest();
 		void HandleRequest();
@@ -34,6 +34,7 @@ class Request
 		std::string getErrorPage(const ServerException &e);
 		std::string getErrorPath(const ServerException &e);
 		std::string getResponseCode(const ServerException &e);
+		void	ChooseServerConfig();
 		void	printMap();
 		
 		bool isCgiRequest(std::string path);

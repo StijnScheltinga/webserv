@@ -119,10 +119,11 @@ void Server::handle_request(int client_fd)
 	Client	*client = getClientPtr(client_fd);
 	if (!client)
 		return ;
-	Config	*config = getCorrectConfig(client);
-	if (!config)
-		return;
-	Request(client, config, requestString, this);
+	//config needs to be chosen from within the request after parsing
+	// Config	*config = getCorrectConfig(client);
+	// if (!config)
+	// 	return;
+	Request(client, requestString, this);
 }
 
 //currently no checks for max clients

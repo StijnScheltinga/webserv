@@ -43,6 +43,8 @@ class Server
         void sendResponse();
 
         std::vector<std::string>& getUploadedFiles();
+
+		std::vector<Config>& getConfigs(void) const;
 		
 
         // int set_fds(fd_set *set, std::vector<int> client_fds);
