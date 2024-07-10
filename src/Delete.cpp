@@ -13,6 +13,7 @@ bool Request::deleteFile(std::string path)
 }
 void	Request::Handle_DELETE(std::string path)
 {
+	//check if DELETE is allowed
 	std::vector<std::string> allowed_methods = route->getAllowedMethods();
 	if (std::find(allowed_methods.begin(), allowed_methods.end(), "DELETE") == allowed_methods.end() && !allowed_methods.empty())
 		throw MethodNotAllowedException();
