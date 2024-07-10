@@ -10,8 +10,8 @@ void Request::executeCGI(std::string path)
 {
 	char *const argv[] = {NULL};
 	char *const envp[] = {NULL};
-	int pipe_fd[2];
-	if (pipe(pipe_fd) == -1)
+	int pipeFd[2];
+	if (pipe(pipeFd) == -1)
 	{
 		std::cerr << "Failed to create pipe" << std::endl;
 		throw InternalServerErrorException();
@@ -24,9 +24,9 @@ void Request::executeCGI(std::string path)
 	}
 	if (pid == 0)
 	{
-		close(pipe_fd[0]);
-		dup2(pipe_fd[1], 1);
-		close(pipe_fd[1]);
+		close(pipeFd[0]);
+		dup2(pipeFd[1], 1);
+		close(pipeFd[1]);
 		if (execve(path.c_str(), argv, envp) == -1)
 		{
 			std::cerr << "Failed to execute CGI script" << std::endl;
@@ -35,20 +35,20 @@ void Request::executeCGI(std::string path)
 	}
 	else
 	{
-		close(pipe_fd[1]);
+		close(pipeFd[1]);
 		char buffer[1024];
-		int bytes_read;
+		int bytesRead;
 		pid_t result;
 		int status;
-		time_t start_time = time(nullptr);
+		time_t startTime = time(nullptr);
 
-		//wait for child process to finish
 		while (true)
 		{
 			result = waitpid(pid, &status, WNOHANG);
 			if (result == 0)
 			{
-				if (time(nullptr) - start_time >= MAX_CGI_EXECUTION_TIME)
+				// Check if the CGI script has been running for too long
+				if (time(nullptr) - startTime >= MAX_CGI_EXECUTION_TIME)
 				{
 					kill(pid, SIGKILL);
 					waitpid(pid, &status, 0);
@@ -63,6 +63,7 @@ void Request::executeCGI(std::string path)
 			}
 			else
 			{
+				// CGI script exited
 				if (WIFEXITED(status))
 				{
 					if (WEXITSTATUS(status) != 0)
@@ -82,11 +83,11 @@ void Request::executeCGI(std::string path)
 
 		}
 		std::string response;
-		while ((bytes_read = read(pipe_fd[0], buffer, 1024)) > 0)
-			response.append(buffer, bytes_read);
-		std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-		_serverInstance->create_write_request(response_header, client->getClientFd());
-		close(pipe_fd[0]);
+		while ((bytesRead = read(pipeFd[0], buffer, 1024)) > 0)
+			response.append(buffer, bytesRead);
+		std::string responseString = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		_serverInstance->create_write_request(responseString, client->getClientFd());
+		close(pipeFd[0]);
 	}
 }
 
