@@ -11,6 +11,7 @@ Request::Request(Client *client, std::string requestString, Server *serverInstan
 {
 	indexSearch = false;
 	ParseRequest();
+	printMap();
 	ChooseServerConfig();
 	HandleRequest();
 }
@@ -19,8 +20,6 @@ Request::~Request() {}
 
 void Request::ParseRequest()
 {
-	std::cout << "request string:" << std::endl;
-	std::cout << requestString << std::endl;
 	//First line always has the method, path and version.
 	std::istringstream ss(requestString);
 	std::string method, path, version;
@@ -36,7 +35,8 @@ void Request::ParseRequest()
         if (delimiter_pos != std::string::npos) 
 		{
             std::string key = line.substr(0, delimiter_pos);
-            std::string value = line.substr(delimiter_pos + 1);
+            std::string value = line.substr(delimiter_pos + 2);
+			value.erase(value.find_last_not_of(" \t\r\n") + 1);
             request_map[key] = value;
         }
 	}
@@ -106,13 +106,48 @@ std::string Request::composePath(Route *route)
 
 void	Request::ChooseServerConfig()
 {
-	std::vector<Config*>	configs = _serverInstance.
+	//returns a reference to config vector
+	std::vector<Config>	&configs = _serverInstance->getConfigs();
+	std::vector<Config*> possibleConfigs;
+
+	//first get configs for port and host of request
+	for (std::vector<Config>::iterator it = configs.begin(); it != configs.end(); it++)
+	{
+		//if port and host match from client and config, save config in posibble config vector
+		std::cout << "config server fd: " << (*it).getServerFd() << ", client server fd: " << client->getServerFd() << std::endl;  
+		if ((*it).getServerFd() == client->getServerFd())
+			possibleConfigs.push_back(&(*it));
+	}
+	//then look for config where host == server name
+	for (std::vector<Config*>::iterator it = possibleConfigs.begin(); it != possibleConfigs.end(); it++)
+	{
+		std::vector<std::string> &serverNames = (*it)->getServerNames();
+		for (std::vector<std::string>::iterator server_it = serverNames.begin(); server_it != serverNames.end(); server_it++)
+		{
+			std::cout << "Host: " << request_map["Host"] << "|" << std::endl;
+			std::cout << "ServerName: " << *server_it << "|" << std::endl;
+			std::string Host = request_map["Host"];
+			std::string ServerName = *server_it;
+			//config found
+			if (Host == ServerName)
+			{
+				std::cout << "server name found" << std::endl;
+				config = (*it);
+				config->printConfig();
+				return;
+			}
+		}
+	}
+	std::cout << "server name not found selecting first server from possible server" << std::endl;
+	//if not found select first config for request
+	config = possibleConfigs[0];
+	config->printConfig();
 }
 
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
-	printMap();
+	// printMap();
 	try
 	{
 		Route *route = matchRoute(request_map["Path"]);
@@ -263,8 +298,6 @@ std::string Request::Handle_GET(std::string path)
 	//specific to autoindex
 	if (route && !file.is_open() && indexSearch && route->getAutoIndex())
 		ss << createAutoIndex(path);
-	else if (!file.is_open() && indexSearch)
-		throw ForbiddenException();
 	else if(!file.is_open() || !file.good())
 		throw NotFoundException();
 	else

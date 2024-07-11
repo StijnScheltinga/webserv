@@ -237,6 +237,7 @@ std::vector<std::string> &Server::getUploadedFiles()
 void	Server::manageSockets()
 {
 	std::set<std::pair<std::string, int>> hostPortSet;
+	std::map<std::pair<std::string, int>, int>	hostPortFd;
 	//sort out duplicate host and ports
 	for (size_t i = 0; i < configs.size(); i++)
 	{
@@ -248,11 +249,16 @@ void	Server::manageSockets()
 			int serverFd = listen_to_socket(hostPort.first, hostPort.second);
 			configs[i].setServerFd(serverFd);
 			serverFds.push_back(serverFd);
+			hostPortFd[hostPort] = serverFd;
 		}
+		else
+			configs[i].setServerFd(hostPortFd[hostPort]);
 	}
+}
 
-	for (const auto& pair : hostPortSet)
-		std::cout << RED << pair.first << " " << pair.second << RESET << std::endl;
+std::vector<Config>&	Server::getConfigs(void) const
+{
+	return configs;
 }
 
 Server::Server(std::vector<Config> &configVector) : configs(configVector)
@@ -260,7 +266,7 @@ Server::Server(std::vector<Config> &configVector) : configs(configVector)
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
 
 	manageSockets();
-	// accept_connection();
+	accept_connection();
 }
 
 Server::~Server()

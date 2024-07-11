@@ -47,7 +47,6 @@ void Config::ParseConfig()
 			exit(1);
 		}
 	}
-	printConfig();
 }
 
 
@@ -194,6 +193,11 @@ std::string	Config::getRoot() const
 std::vector<ErrorPage> Config::getErrorPages() const
 {
 	return error_pages;
+}
+
+std::vector<std::string> &Config::getServerNames()
+{
+	return server_name;
 }
 
 size_t Config::getClientMaxBodySize() const

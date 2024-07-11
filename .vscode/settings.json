@@ -62,6 +62,7 @@
 		"cstring": "cpp",
 		"cinttypes": "cpp",
 		"codecvt": "cpp",
-		"iomanip": "cpp"
+		"iomanip": "cpp",
+		"set": "cpp"
 	}
 }
