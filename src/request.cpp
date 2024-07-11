@@ -109,6 +109,7 @@ void Request::HandleRequest()
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
+		std::cout << "Route: " << route->getPath() << std::endl;
 		if (route->getRedirect().getUrl() != "")
 			throw RedirectionException(route->getRedirect().getUrl(), route->getRedirect().getCode());
 		std::string path = composePath(route);
@@ -132,7 +133,7 @@ void Request::HandleRequest()
 	catch (const RedirectionException &e)
 	{
 		std::cerr << BLUE << "Redirection to " << e.getUrl() << RESET << std::endl;
-		std::string responseBody = "<html><body><h1>301 Moved Permanently</h1></body></html>";
+		std::string responseBody = "<html><body><h1>You are being redirected</h1></body></html>";
 		std::string responseHeader = "HTTP/1.1 " + std::to_string(e.getCode()) + " Moved\r\n";
 		responseHeader += "Location: " + e.getUrl() + "\r\n";
 		responseHeader += CONTENT_LENGTH + std::to_string(responseBody.size()) + "\r\n\r\n" + responseBody;
@@ -146,6 +147,7 @@ void Request::HandleRequest()
 		_serverInstance->create_write_request(responseHeader, client->getClientFd());
 	}
 }
+
 
 std::string Request::getResponseCode(const ServerException &e)
 {
