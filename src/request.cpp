@@ -255,8 +255,6 @@ std::string Request::Handle_GET(std::string path)
 	//specific to autoindex
 	if (route && !file.is_open() && indexSearch && route->getAutoIndex())
 		ss << createAutoIndex(path);
-	else if (!file.is_open() && indexSearch)
-		throw ForbiddenException();
 	else if(!file.is_open() || !file.good())
 		throw NotFoundException();
 	else

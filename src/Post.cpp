@@ -27,13 +27,13 @@ std::string Request::find_boundary(std::string &request_string)
 
 std::string Request::handlePlainText(std::string path)
 {
-	size_t content_start = requestString.find("\r\n\r\n");
-	if (content_start == std::string::npos)
+	size_t contentStart = requestString.find("\r\n\r\n");
+	if (contentStart == std::string::npos)
 	{
 		std::cerr << "Content not found" << std::endl;
 		throw InternalServerErrorException();
 	}
-	std::string content = requestString.substr(content_start + 4);
+	std::string content = requestString.substr(contentStart + 4);
 	if (content.size() > config->getClientMaxBodySize())
 	{
 		std::cerr << "File too large" << std::endl;
@@ -50,8 +50,8 @@ std::string Request::handlePlainText(std::string path)
 	}
 	ofs << content;
 	std::string response = "POST request received\n";
-	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-	return response_string;
+	std::string responseString = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+	return responseString;
 }
 
 
@@ -76,15 +76,15 @@ std::string Request::handleMultiPart(std::string path)
 		std::cerr << "Boundary not found" << std::endl;
 		throw InternalServerErrorException();
 	}
-	size_t content_start = request_string.find("\r\n\r\n", boundary_pos) + 4;
-	size_t content_end = request_string.find(boundary + "--", content_start);
-	if (content_end == std::string::npos)
+	size_t contentStart = request_string.find("\r\n\r\n", boundary_pos) + 4;
+	size_t contentEnd = request_string.find(boundary + "--", contentStart);
+	if (contentEnd == std::string::npos)
 	{
 		std::cerr << "End boundary not found" << std::endl;
 		throw InternalServerErrorException();
 	}
-	content_end -= 4;
-	std::string content = request_string.substr(content_start, content_end - content_start);
+	contentEnd -= 4;
+	std::string content = request_string.substr(contentStart, contentEnd - contentStart);
 	if (content.size() > config->getClientMaxBodySize())
 	{
 		std::cerr << "File too large" << std::endl;
@@ -102,8 +102,8 @@ std::string Request::handleMultiPart(std::string path)
 		std::cout << "file already exists" << std::endl;
 	
 	std::string response = "POST request received\n";
-	std::string response_string = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
-	return response_string;
+	std::string responseString= HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+	return responseString;
 }
 
 std::string Request::Handle_POST(std::string path, Route *route)
