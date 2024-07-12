@@ -6,16 +6,19 @@ ErrorPage::ErrorPage(std::string errorPage)
 {
 	std::istringstream	ss(errorPage);
 	std::string 		token;
+	int	arg_n = 0;
 	while (ss >> token)
 	{
 		if (token[0] == '/' || !isdigit(token[0]))
 		{
 			this->setPath(token);
+			std::cout << "path for error page: " << token << std::endl;
 			break ;
 		}
 		else
 		{
 			this->addStatusCode(token);
+			std::cout << "status code: " << token << std::endl;
 		}
 	}
 }

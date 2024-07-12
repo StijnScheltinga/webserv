@@ -131,24 +131,32 @@ void Config::setClientMaxBodySize(std::string clientMaxBodySize)
 			exit(1);
 		}
 	}
-	if (suffix == 'k')
-		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000;
-	else if (suffix == 'm')
-		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000;
-	else if (suffix == 'g')
-		this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000 * 1000;
-	else if (suffix == 'b')
-		this->client_max_body_size = std::stoi(clientMaxBodySize);
-	else
-		{
-			std::cerr << "Invalid suffix for client_max_body_size" << std::endl;
-			exit(1);
-		}
+	try
+	{
+		if (suffix == 'k')
+			this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000;
+		else if (suffix == 'm')
+			this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000;
+		else if (suffix == 'g')
+			this->client_max_body_size = std::stoi(clientMaxBodySize) * 1000 * 1000 * 1000;
+		else if (suffix == 'b')
+			this->client_max_body_size = std::stoi(clientMaxBodySize);
+		else
+			{
+				std::cerr << "Invalid suffix for client_max_body_size" << std::endl;
+				exit(1);
+			}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "invalid client_max_body_size value" << std::endl;
+		exit(1);
+	}
 }
 
 void Config::setErrorPage(std::string errorPage)
 {
-	std::istringstream	ss(errorPage);
+	std::cout << "error page string: " << errorPage << std::endl;
 	ErrorPage			errorPageObj(errorPage);
 	error_pages.push_back(errorPageObj);
 }
