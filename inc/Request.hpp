@@ -26,6 +26,8 @@ class Request
 		void HandleRequest();
 		std::string Handle_GET(std::string path);
 		std::string Handle_POST(std::string path, Route *route);
+		std::string handleMultiPart(std::string path);
+		std::string handlePlainText(std::string path);
 		void		Handle_DELETE(std::string path);
 		std::string handleFavicon();
 		bool	deleteFile(std::string path);
