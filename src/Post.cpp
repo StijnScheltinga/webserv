@@ -112,8 +112,8 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (std::find(allowed_methods.begin(), allowed_methods.end(), "POST") == allowed_methods.end() && !allowed_methods.empty())
 		throw MethodNotAllowedException();
 
-	if (request_map["Content-Type"].find("multipart/form-data") != std::string::npos)
-		return handleMultiPart(path);
-	else
+	if (request_map["Content-Type"].find("text/html") != std::string::npos)
 		return handlePlainText(path);
+	else
+		return handleMultiPart(path);
 }
