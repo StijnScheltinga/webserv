@@ -9,7 +9,6 @@
 
 Request::Request(Client *client, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), requestString(requestString)
 {
-	indexSearch = false;
 	ParseRequest();
 	printMap();
 	ChooseServerConfig();
@@ -94,13 +93,6 @@ std::string Request::composePath(Route *route)
 		else
 			path = alias + requestPath.substr(routePath.length());
 	}
-	if (isDirectory(path))
-	{
-		//if it is a directory we want the index file
-		indexSearch = true;
-		path.back() == '/' ? path += defineIndex(route) : path += "/" + defineIndex(route);
-	}
-	std::cout << path << std::endl;
 	return path;
 }
 
@@ -150,6 +142,7 @@ void Request::HandleRequest()
 	// printMap();
 	try
 	{
+		//if no route is found no response is generated
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
@@ -249,16 +242,6 @@ std::string Request::getErrorPage(const ServerException &e)
 	return ss.str();
 }
 
-std::string Request::defineIndex(Route *route)
-{
-	std::string index;
-	if (route->getIndex().empty())
-		index = config->getIndex();
-	else
-		index = route->getIndex();
-	return index;
-}
-
 std::string Request::normalizePath(std::string path)
 {
 	std::string normalizedPath = path;
@@ -293,16 +276,42 @@ std::string Request::Handle_GET(std::string path)
 	if (request_map["Path"] == "/favicon.ico")
 		return handleFavicon();
 	
-	std::ifstream file(path);
-	std::stringstream ss;
-	//specific to autoindex
-	if (route && !file.is_open() && indexSearch && route->getAutoIndex())
-		ss << createAutoIndex(path);
-	else if(!file.is_open() || !file.good())
-		throw NotFoundException();
-	else
-		ss << file.rdbuf();
-	std::string response = HTTP_OK + CONTENT_LENGTH + std::to_string(ss.str().size()) + "\r\n\r\n" + ss.str();
+	std::cout << RED << "path: " << path << RESET << std::endl;
+	std::cout << "autoindex: " << route->getAutoIndex() << std::endl;
+
+	std::stringstream outstream;
+
+
+	if (isDirectory(path))
+	{
+		std::cout << "path is an index" << std::endl;
+		//if it is a directory we want the index file
+		//if no index file is found return forbidden 403 error
+
+		if (!route->getIndex().empty())
+		{
+			std::cout << "index specified" << std::endl;
+			path.back() == '/' ? path += route->getIndex() : path += "/" + route->getIndex();
+			std::ifstream file(path);
+			if (file.is_open() && file.good())
+				outstream << file.rdbuf();
+			else
+				throw ForbiddenException();
+		}
+		else if (route->getAutoIndex())
+			outstream << createAutoIndex(path);
+		else
+			throw ForbiddenException();
+	}
+	else //requested URI is a file
+	{
+		std::ifstream file(path);
+		if(!file.is_open() || !file.good())
+			throw NotFoundException();
+		outstream << file.rdbuf();
+	}
+
+	std::string response = HTTP_OK + CONTENT_LENGTH + std::to_string(outstream.str().size()) + "\r\n\r\n" + outstream.str();
 	return response;
 }
 

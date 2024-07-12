@@ -40,7 +40,6 @@ class Request
 		bool isCgiRequest(std::string path);
 		void executeCGI(std::string path);
 		Route *matchRoute(std::string path);
-		std::string defineIndex(Route *route);
 		bool isDirectory(std::string path);
 		std::string normalizePath(std::string path);
 		std::string composePath(Route *route);
@@ -54,7 +53,6 @@ class Request
 		std::map<std::string, std::string> request_map;
 		std::string _http_version;
 		Server	*_serverInstance;
-		bool indexSearch;
 		Route *route;
 };
 
