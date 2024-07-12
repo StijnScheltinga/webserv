@@ -47,7 +47,6 @@ void Config::ParseConfig()
 			exit(1);
 		}
 	}
-	printConfig();
 }
 
 
@@ -171,8 +170,6 @@ void Config::setIndex(std::string index)
 
 void Config::setHost(std::string host)
 {
-	if (host == "localhost")
-		host = "127.0.0.1";
 	this->host = host;
 }
 
@@ -199,6 +196,11 @@ std::string	Config::getRoot() const
 std::vector<ErrorPage> Config::getErrorPages() const
 {
 	return error_pages;
+}
+
+std::vector<std::string> &Config::getServerNames()
+{
+	return server_name;
 }
 
 size_t Config::getClientMaxBodySize() const

@@ -21,6 +21,7 @@
 #include <map>
 #include "Error.hpp"
 #include "Config.hpp"
+#include <set>
 
 class Server
 {
@@ -31,7 +32,7 @@ class Server
         void TransferConfig();
         void parse_config();
 
-        int listen_to_socket();
+        int listen_to_socket(std::string host, int port);
         void accept_connection();
 		void add_client(int epoll_fd, int event_fd);
 		void remove_client(int client_fd);
@@ -42,6 +43,8 @@ class Server
         void sendResponse();
 
         std::vector<std::string>& getUploadedFiles();
+
+		std::vector<Config>& getConfigs(void) const;
 		
 
         // int set_fds(fd_set *set, std::vector<int> client_fds);
@@ -79,6 +82,7 @@ class Server
         
 		Client	*getClientPtr(int clientFd);
 		Config	*getCorrectConfig(Client *client);
+		void	manageSockets();
 };
 
 

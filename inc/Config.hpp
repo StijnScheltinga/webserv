@@ -43,6 +43,7 @@ class Config
 		void setHost(std::string host);
 		int getServerFd();
 		std::vector<Route> &getRoutes();
+		std::vector<std::string> &getServerNames();
 
 		char getMaxClientBodySizeSuffix(std::string &clientMaxBodySize);
 

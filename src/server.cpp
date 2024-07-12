@@ -7,18 +7,18 @@
 #include <vector>
 #include <cstring>
 
-int Server::listen_to_socket()
+int Server::listen_to_socket(std::string host, int port)
 {
 	int serverFd = socket(AF_INET, SOCK_STREAM, 0);
-	int servernum = serverFds.size();
+	// int servernum = serverFds.size();
 	if (serverFd == -1)
 		exitError(SOCK_FAIL);
 	std::memset(&sock_addr, 0, sizeof(sock_addr));
 	sock_addr.sin_family = AF_INET;
-	if (inet_pton(AF_INET, configs[servernum].getHost().c_str(), &sock_addr.sin_addr.s_addr) <= 0)
+	if (inet_pton(AF_INET, host.c_str(), &sock_addr.sin_addr.s_addr) <= 0)
 		exitError(INET_PTON_ERROR);
-	std::cout << configs[servernum].getPort() << std::endl;
-	sock_addr.sin_port = htons(configs[servernum].getPort());
+	std::cout << port << std::endl;
+	sock_addr.sin_port = htons(port);
 	sock_addr_len = sizeof(sock_addr);
     if (bind(serverFd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)
     {
@@ -119,10 +119,11 @@ void Server::handle_request(int client_fd)
 	Client	*client = getClientPtr(client_fd);
 	if (!client)
 		return ;
-	Config	*config = getCorrectConfig(client);
-	if (!config)
-		return;
-	Request(client, config, requestString, this);
+	//config needs to be chosen from within the request after parsing
+	// Config	*config = getCorrectConfig(client);
+	// if (!config)
+	// 	return;
+	Request(client, requestString, this);
 }
 
 //currently no checks for max clients
@@ -232,16 +233,39 @@ std::vector<std::string> &Server::getUploadedFiles()
 	return uploaded_files;
 }
 
+//needs to send non-duplicate host and ports to listen to socket
+void	Server::manageSockets()
+{
+	std::set<std::pair<std::string, int>> hostPortSet;
+	std::map<std::pair<std::string, int>, int>	hostPortFd;
+	//sort out duplicate host and ports
+	for (size_t i = 0; i < configs.size(); i++)
+	{
+		Config	&config = configs[i];
+		std::pair<std::string, int>		hostPort(config.getHost(), config.getPort());
+		//if host port combination is not found add it to the vec and create a socket
+		if (hostPortSet.insert(hostPort).second)
+		{
+			int serverFd = listen_to_socket(hostPort.first, hostPort.second);
+			configs[i].setServerFd(serverFd);
+			serverFds.push_back(serverFd);
+			hostPortFd[hostPort] = serverFd;
+		}
+		else
+			configs[i].setServerFd(hostPortFd[hostPort]);
+	}
+}
+
+std::vector<Config>&	Server::getConfigs(void) const
+{
+	return configs;
+}
+
 Server::Server(std::vector<Config> &configVector) : configs(configVector)
 {
 	std::cout << GREEN << "Starting Server..." << RESET << std::endl;
 
-	for (size_t i = 0; i < configVector.size(); i++)
-	{
-		int serverFd = listen_to_socket();
-		configVector[i].setServerFd(serverFd);
-		serverFds.push_back(serverFd);
-	}
+	manageSockets();
 	accept_connection();
 }
 

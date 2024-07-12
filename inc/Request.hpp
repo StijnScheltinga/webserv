@@ -20,7 +20,7 @@ const std::string CONTENT_LENGTH = "Content-Length: ";
 class Request
 {
 	public:
-		Request(Client *client, Config *config, std::string requestString, Server *serverInstance);
+		Request(Client *client, std::string requestString, Server *serverInstance);
 		~Request();
 		void ParseRequest();
 		void HandleRequest();
@@ -36,12 +36,12 @@ class Request
 		std::string getErrorPage(const ServerException &e);
 		std::string getErrorPath(const ServerException &e);
 		std::string getResponseCode(const ServerException &e);
+		void	ChooseServerConfig();
 		void	printMap();
 		
 		bool isCgiRequest(std::string path);
 		void executeCGI(std::string path);
 		Route *matchRoute(std::string path);
-		std::string defineIndex(Route *route);
 		bool isDirectory(std::string path);
 		std::string normalizePath(std::string path);
 		std::string composePath(Route *route);
@@ -55,7 +55,6 @@ class Request
 		std::map<std::string, std::string> request_map;
 		std::string _http_version;
 		Server	*_serverInstance;
-		bool indexSearch;
 		Route *route;
 };
 

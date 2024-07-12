@@ -7,10 +7,11 @@
 #include <fstream>
 #include <sys/stat.h>
 
-Request::Request(Client *client, Config *config, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), config(config), requestString(requestString)
+Request::Request(Client *client, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), requestString(requestString)
 {
-	indexSearch = false;
 	ParseRequest();
+	printMap();
+	ChooseServerConfig();
 	HandleRequest();
 }
 
@@ -33,7 +34,8 @@ void Request::ParseRequest()
         if (delimiter_pos != std::string::npos) 
 		{
             std::string key = line.substr(0, delimiter_pos);
-            std::string value = line.substr(delimiter_pos + 1);
+            std::string value = line.substr(delimiter_pos + 2);
+			value.erase(value.find_last_not_of(" \t\r\n") + 1);
             request_map[key] = value;
         }
 	}
@@ -91,14 +93,47 @@ std::string Request::composePath(Route *route)
 		else
 			path = alias + requestPath.substr(routePath.length());
 	}
-	if (isDirectory(path))
-	{
-		//if it is a directory we want the index file
-		indexSearch = true;
-		path.back() == '/' ? path += defineIndex(route) : path += "/" + defineIndex(route);
-	}
-	std::cout << path << std::endl;
 	return path;
+}
+
+void	Request::ChooseServerConfig()
+{
+	//returns a reference to config vector
+	std::vector<Config>	&configs = _serverInstance->getConfigs();
+	std::vector<Config*> possibleConfigs;
+
+	//first get configs for port and host of request
+	for (std::vector<Config>::iterator it = configs.begin(); it != configs.end(); it++)
+	{
+		//if port and host match from client and config, save config in posibble config vector
+		std::cout << "config server fd: " << (*it).getServerFd() << ", client server fd: " << client->getServerFd() << std::endl;  
+		if ((*it).getServerFd() == client->getServerFd())
+			possibleConfigs.push_back(&(*it));
+	}
+	//then look for config where host == server name
+	for (std::vector<Config*>::iterator it = possibleConfigs.begin(); it != possibleConfigs.end(); it++)
+	{
+		std::vector<std::string> &serverNames = (*it)->getServerNames();
+		for (std::vector<std::string>::iterator server_it = serverNames.begin(); server_it != serverNames.end(); server_it++)
+		{
+			std::cout << "Host: " << request_map["Host"] << "|" << std::endl;
+			std::cout << "ServerName: " << *server_it << "|" << std::endl;
+			std::string Host = request_map["Host"];
+			std::string ServerName = *server_it;
+			//config found
+			if (Host == ServerName)
+			{
+				std::cout << "server name found" << std::endl;
+				config = (*it);
+				config->printConfig();
+				return;
+			}
+		}
+	}
+	std::cout << "server name not found selecting first server from possible server" << std::endl;
+	//if not found select first config for request
+	config = possibleConfigs[0];
+	config->printConfig();
 }
 
 //make a write request first and then check for availability to write to client_fd
@@ -106,6 +141,7 @@ void Request::HandleRequest()
 {
 	try
 	{
+		//if no route is found no response is generated
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
@@ -206,16 +242,6 @@ std::string Request::getErrorPage(const ServerException &e)
 	return ss.str();
 }
 
-std::string Request::defineIndex(Route *route)
-{
-	std::string index;
-	if (route->getIndex().empty())
-		index = config->getIndex();
-	else
-		index = route->getIndex();
-	return index;
-}
-
 std::string Request::normalizePath(std::string path)
 {
 	std::string normalizedPath = path;
@@ -249,17 +275,43 @@ std::string Request::Handle_GET(std::string path)
 		throw MethodNotAllowedException();
 	if (request_map["Path"] == "/favicon.ico")
 		return handleFavicon();
-	
-	std::ifstream file(path);
-	std::stringstream ss;
-	//specific to autoindex
-	if (route && !file.is_open() && indexSearch && route->getAutoIndex())
-		ss << createAutoIndex(path);
-	else if(!file.is_open() || !file.good())
-		throw NotFoundException();
-	else
-		ss << file.rdbuf();
-	std::string response = HTTP_OK + CONTENT_LENGTH + std::to_string(ss.str().size()) + "\r\n\r\n" + ss.str();
+
+	std::cout << RED << "path: " << path << RESET << std::endl;
+	std::cout << "autoindex: " << route->getAutoIndex() << std::endl;
+
+	std::stringstream outstream;
+
+
+	if (isDirectory(path))
+	{
+		std::cout << "path is an index" << std::endl;
+		//if it is a directory we want the index file
+		//if no index file is found return forbidden 403 error
+
+		if (!route->getIndex().empty())
+		{
+			std::cout << "index specified" << std::endl;
+			path.back() == '/' ? path += route->getIndex() : path += "/" + route->getIndex();
+			std::ifstream file(path);
+			if (file.is_open() && file.good())
+				outstream << file.rdbuf();
+			else
+				throw ForbiddenException();
+		}
+		else if (route->getAutoIndex())
+			outstream << createAutoIndex(path);
+		else
+			throw ForbiddenException();
+	}
+	else //requested URI is a file
+	{
+		std::ifstream file(path);
+		if(!file.is_open() || !file.good())
+			throw NotFoundException();
+		outstream << file.rdbuf();
+	}
+
+	std::string response = HTTP_OK + CONTENT_LENGTH + std::to_string(outstream.str().size()) + "\r\n\r\n" + outstream.str();
 	return response;
 }
 
