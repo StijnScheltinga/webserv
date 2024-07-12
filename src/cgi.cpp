@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "../inc/Request.hpp"
+#include <string.h>
 
 #define MAX_CGI_EXECUTION_TIME 2 // seconds
 
@@ -24,14 +25,50 @@ void Request::executeCGI(std::string path)
 	}
 	if (pid == 0)
 	{
+		std::string postData = requestString.substr(requestString.find("\r\n\r\n") + 4);
 		close(pipeFd[0]);
 		dup2(pipeFd[1], 1);
 		close(pipeFd[1]);
-		if (execve(path.c_str(), argv, envp) == -1)
+		
+		setenv("REQUEST_METHOD", request_map["Method"].c_str(), 1);
+		setenv("REQUEST_URI", request_map["Path"].c_str(), 1);
+		setenv("CONTENT_LENGTH", std::to_string(postData.size()).c_str(), 1);
+		setenv("SCRIPT_NAME", path.c_str(), 1);
+		setenv("CONTENT_LENGTH", std::to_string(postData.size()).c_str(), 1);
+		setenv("CONTENT_TYPE", "text/html", 1);
+
+		int postFd[2];
+		if (pipe(postFd) == -1)
 		{
-			std::cerr << "Failed to execute CGI script" << std::endl;
+			std::cerr << "Failed to create pipe" << std::endl;
 			throw InternalServerErrorException();
 		}
+		pid_t postPid = fork();
+		if (postPid == -1)
+		{
+			std::cerr << "Failed to fork" << std::endl;
+			throw InternalServerErrorException();
+		}
+
+		if (postPid == 0)
+		{
+			close(postFd[0]);
+			write(postFd[1], postData.c_str(), postData.size());
+			close(postFd[1]);
+			exit(0);
+		}
+		else
+		{
+			close(postFd[1]);
+			dup2(postFd[0], 0);
+			close(postFd[0]);
+			if (execve(path.c_str(), argv, envp) == -1)
+			{
+				std::cerr << "Failed to execute CGI script" << std::endl;
+				exit(1);
+			}
+		}
+		
 	}
 	else
 	{
@@ -85,7 +122,7 @@ void Request::executeCGI(std::string path)
 		std::string response;
 		while ((bytesRead = read(pipeFd[0], buffer, 1024)) > 0)
 			response.append(buffer, bytesRead);
-		std::string responseString = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
+		std::string responseString = HTTP_OK + "Content-Type: text/html\r\n" +  CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		_serverInstance->create_write_request(responseString, client->getClientFd());
 		close(pipeFd[0]);
 	}
