@@ -18,8 +18,6 @@ Request::~Request() {}
 
 void Request::ParseRequest()
 {
-	std::cout << "request string:" << std::endl;
-	std::cout << requestString << std::endl;
 	//First line always has the method, path and version.
 	std::istringstream ss(requestString);
 	std::string method, path, version;
@@ -106,12 +104,12 @@ std::string Request::composePath(Route *route)
 //make a write request first and then check for availability to write to client_fd
 void Request::HandleRequest()
 {
-	printMap();
 	try
 	{
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
+		std::cout << "Route: " << route->getPath() << std::endl;
 		if (route->getRedirect().getUrl() != "")
 			throw RedirectionException(route->getRedirect().getUrl(), route->getRedirect().getCode());
 		std::string path = composePath(route);
@@ -127,7 +125,6 @@ void Request::HandleRequest()
 		else if (request_map["Method"] == "POST")
 		{
 			std::string response = Handle_POST(path, route);
-			std::string response_header = HTTP_OK + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 			_serverInstance->create_write_request(response, client->getClientFd());
 		}
 		else if (request_map["Method"] == "DELETE")
@@ -136,7 +133,7 @@ void Request::HandleRequest()
 	catch (const RedirectionException &e)
 	{
 		std::cerr << BLUE << "Redirection to " << e.getUrl() << RESET << std::endl;
-		std::string responseBody = "<html><body><h1>301 Moved Permanently</h1></body></html>";
+		std::string responseBody = "<html><body><h1>You are being redirected</h1></body></html>";
 		std::string responseHeader = "HTTP/1.1 " + std::to_string(e.getCode()) + " Moved\r\n";
 		responseHeader += "Location: " + e.getUrl() + "\r\n";
 		responseHeader += CONTENT_LENGTH + std::to_string(responseBody.size()) + "\r\n\r\n" + responseBody;
@@ -150,6 +147,7 @@ void Request::HandleRequest()
 		_serverInstance->create_write_request(responseHeader, client->getClientFd());
 	}
 }
+
 
 std::string Request::getResponseCode(const ServerException &e)
 {
@@ -257,8 +255,6 @@ std::string Request::Handle_GET(std::string path)
 	//specific to autoindex
 	if (route && !file.is_open() && indexSearch && route->getAutoIndex())
 		ss << createAutoIndex(path);
-	else if (!file.is_open() && indexSearch)
-		throw ForbiddenException();
 	else if(!file.is_open() || !file.good())
 		throw NotFoundException();
 	else
