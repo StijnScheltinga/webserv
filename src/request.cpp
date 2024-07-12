@@ -27,8 +27,12 @@ void Request::ParseRequest()
 	request_map["Version"] = version;
 
 	std::string line;
+	std::getline(ss, line); // skip first line
     while (std::getline(ss, line)) 
 	{
+		//find \r\n\r\n end of header
+		if (line == "\r")
+			break;
         size_t delimiter_pos = line.find(':');
         if (delimiter_pos != std::string::npos) 
 		{

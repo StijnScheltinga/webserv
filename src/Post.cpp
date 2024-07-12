@@ -87,6 +87,7 @@ std::string Request::handleMultiPart(std::string path)
 	std::string content = request_string.substr(contentStart, contentEnd - contentStart);
 	if (content.size() > config->getClientMaxBodySize())
 	{
+		deleteFile(upload_path);
 		std::cerr << "File too large" << std::endl;
 		throw ContentTooLargeException();
 	}
@@ -112,7 +113,8 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (std::find(allowed_methods.begin(), allowed_methods.end(), "POST") == allowed_methods.end() && !allowed_methods.empty())
 		throw MethodNotAllowedException();
 
-	if (request_map["Content-Type"].find("text/html") != std::string::npos)
+	std::cout << "Content-Type: " << request_map["Content-Type"] << std::endl;
+	if (request_map["Content-Type"].find("text/html") != std::string::npos || request_map["Content-Type"].find("plain/text") != std::string::npos)
 		return handlePlainText(path);
 	else
 		return handleMultiPart(path);

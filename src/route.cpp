@@ -18,6 +18,8 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 		ss >> key >> value;
 		if (key == "limit_except")
 			setAllowedMethods(line);
+		else if (key == "return")
+			setUpRedirect(line);
 		else if (key == "alias")
 			setAlias(value);
 		else if (key == "index")
@@ -26,8 +28,6 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 			setAutoIndex(value);
 		else if (key == "client_body_temp_path")
 			setUploadDir(value);
-		else if (key == "return")
-			setUpRedirect(line);
 		else
 		{
 			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;
