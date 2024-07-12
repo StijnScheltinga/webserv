@@ -17,7 +17,6 @@ int Server::listen_to_socket(std::string host, int port)
 	sock_addr.sin_family = AF_INET;
 	if (inet_pton(AF_INET, host.c_str(), &sock_addr.sin_addr.s_addr) <= 0)
 		exitError(INET_PTON_ERROR);
-	std::cout << port << std::endl;
 	sock_addr.sin_port = htons(port);
 	sock_addr_len = sizeof(sock_addr);
     if (bind(serverFd, (struct sockaddr *)&sock_addr, sock_addr_len) < 0)

@@ -10,7 +10,6 @@
 Request::Request(Client *client, std::string requestString, Server *serverInstance) : _serverInstance(serverInstance), client(client), requestString(requestString)
 {
 	ParseRequest();
-	printMap();
 	ChooseServerConfig();
 	HandleRequest();
 }
@@ -106,7 +105,6 @@ void	Request::ChooseServerConfig()
 	for (std::vector<Config>::iterator it = configs.begin(); it != configs.end(); it++)
 	{
 		//if port and host match from client and config, save config in posibble config vector
-		std::cout << "config server fd: " << (*it).getServerFd() << ", client server fd: " << client->getServerFd() << std::endl;  
 		if ((*it).getServerFd() == client->getServerFd())
 			possibleConfigs.push_back(&(*it));
 	}
@@ -116,24 +114,18 @@ void	Request::ChooseServerConfig()
 		std::vector<std::string> &serverNames = (*it)->getServerNames();
 		for (std::vector<std::string>::iterator server_it = serverNames.begin(); server_it != serverNames.end(); server_it++)
 		{
-			std::cout << "Host: " << request_map["Host"] << "|" << std::endl;
-			std::cout << "ServerName: " << *server_it << "|" << std::endl;
 			std::string Host = request_map["Host"];
 			std::string ServerName = *server_it;
 			//config found
 			if (Host == ServerName)
 			{
-				std::cout << "server name found" << std::endl;
 				config = (*it);
-				config->printConfig();
 				return;
 			}
 		}
 	}
-	std::cout << "server name not found selecting first server from possible server" << std::endl;
 	//if not found select first config for request
 	config = possibleConfigs[0];
-	config->printConfig();
 }
 
 //make a write request first and then check for availability to write to client_fd
@@ -145,7 +137,6 @@ void Request::HandleRequest()
 		Route *route = matchRoute(request_map["Path"]);
 		if (!route)
 			throw NotFoundException();
-		std::cout << "Route: " << route->getPath() << std::endl;
 		if (route->getRedirect().getUrl() != "")
 			throw RedirectionException(route->getRedirect().getUrl(), route->getRedirect().getCode());
 		std::string path = composePath(route);
@@ -177,7 +168,7 @@ void Request::HandleRequest()
 	}
 	catch (const ServerException &e)
 	{
-		std::cerr << RED << e.what() << RESET << std::endl;
+		std::cerr << RED << e.what() << RESET;
 		std::string response = getErrorPage(e);
 		std::string responseHeader= getResponseCode(e) + CONTENT_LENGTH + std::to_string(response.size()) + "\r\n\r\n" + response;
 		_serverInstance->create_write_request(responseHeader, client->getClientFd());
@@ -276,21 +267,16 @@ std::string Request::Handle_GET(std::string path)
 	if (request_map["Path"] == "/favicon.ico")
 		return handleFavicon();
 
-	std::cout << RED << "path: " << path << RESET << std::endl;
-	std::cout << "autoindex: " << route->getAutoIndex() << std::endl;
-
 	std::stringstream outstream;
 
 
 	if (isDirectory(path))
 	{
-		std::cout << "path is an index" << std::endl;
 		//if it is a directory we want the index file
 		//if no index file is found return forbidden 403 error
 
 		if (!route->getIndex().empty())
 		{
-			std::cout << "index specified" << std::endl;
 			path.back() == '/' ? path += route->getIndex() : path += "/" + route->getIndex();
 			std::ifstream file(path);
 			if (file.is_open() && file.good())
@@ -322,17 +308,15 @@ std::string Request::createAutoIndex(const std::string &path)
 	autoIndex << "<html>\n<head><title>Index of /</title></head>";
 	//get the directory
 	std::string directory = path.substr(0, path.find_last_of('/'));
-	std::cout << "path: " << path << std::endl;
-	std::cout << "directory " << directory << std::endl;
 	autoIndex << "<h1>Index of " << directory << "</h1><hr><ul>";
 	try {
         for (const auto & entry : std::filesystem::directory_iterator(directory)) {
             autoIndex << "<li>" << entry.path() << "</li>" ;
         }
     } catch (const std::filesystem::filesystem_error& err) {
-        std::cerr << "Filesystem error: " << err.what() << std::endl;
+        throw InternalServerErrorException();
     } catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
+        throw InternalServerErrorException();
     }
 	autoIndex << "</ul><hr></body></html>";
 	return autoIndex.str();
