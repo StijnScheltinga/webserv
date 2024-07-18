@@ -156,7 +156,6 @@ void Config::setClientMaxBodySize(std::string clientMaxBodySize)
 
 void Config::setErrorPage(std::string errorPage)
 {
-	std::cout << "error page string: " << errorPage << std::endl;
 	ErrorPage			errorPageObj(errorPage);
 	error_pages.push_back(errorPageObj);
 }

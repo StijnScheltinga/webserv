@@ -7,19 +7,37 @@ ErrorPage::ErrorPage(std::string errorPage)
 	std::istringstream	ss(errorPage);
 	std::string 		token;
 	int	arg_n = 0;
-	while (ss >> token)
+
+	if (ss >> token)
 	{
-		if (token[0] == '/' || !isdigit(token[0]))
+		int i = 0;
+		for (char c : token)
 		{
-			this->setPath(token);
-			std::cout << "path for error page: " << token << std::endl;
-			break ;
+			if (i > 2)
+			{
+				std::cerr << "Error code can only comprise of 3 numbers" << std::endl;
+				exit(1);
+			}
+			if (!isdigit(c))
+			{
+				std::cerr << "Error code can only comprise of numbers" << std::endl;
+				exit(1);
+			}
+			i++;	
 		}
-		else
-		{
-			this->addStatusCode(token);
-			std::cout << "status code: " << token << std::endl;
-		}
+		this->addStatusCode(token);
+	}
+	else
+	{
+		std::cerr << "Error page directive has no status code" << std::endl;
+		exit(1);
+	}
+	if (ss >> token)
+		this->setPath(token);
+	else
+	{
+		std::cerr << "Error page directive has no path" << std:: endl;
+		exit (1);
 	}
 }
 
