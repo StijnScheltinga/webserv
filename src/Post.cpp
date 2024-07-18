@@ -73,6 +73,7 @@ std::string Request::handleMultiPart(std::string path)
 	size_t boundary_pos = request_string.find(boundary);
 	if (boundary_pos == std::string::npos)
 	{
+		deleteFile(upload_path);
 		std::cerr << "Boundary not found" << std::endl;
 		throw InternalServerErrorException();
 	}
@@ -80,6 +81,7 @@ std::string Request::handleMultiPart(std::string path)
 	size_t contentEnd = request_string.find(boundary + "--", contentStart);
 	if (contentEnd == std::string::npos)
 	{
+		deleteFile(upload_path);
 		std::cerr << "End boundary not found" << std::endl;
 		throw InternalServerErrorException();
 	}

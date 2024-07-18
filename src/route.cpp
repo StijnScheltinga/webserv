@@ -14,23 +14,48 @@ Route::Route(std::vector<std::string>::iterator &it, std::vector<std::string>::c
 		if (line.find('}') != std::string::npos)
 			break ;
 		std::istringstream ss(line);
-		std::string key, value;
-		ss >> key >> value;
-		if (key == "limit_except")
+		std::vector<std::string> tokens;
+		std::string token;
+		while (ss >> token)
+			tokens.push_back(token);
+
+		if (tokens[0] == "limit_except")
+		{
+			if (tokens.size() < 2)
+			{
+				std::cerr << "limit_except directive requires at least one method" << std::endl;
+				exit(1);
+			}
 			setAllowedMethods(line);
-		else if (key == "return")
+		}
+		else if(tokens[0] == "return")
+		{
+			if (tokens.size() != 3)
+			{
+				std::cerr << "return directive requires a status code and a url" << std::endl;
+				exit(1);
+			}
 			setUpRedirect(line);
-		else if (key == "alias")
-			setAlias(value);
-		else if (key == "index")
-			setIndex(value);
-		else if (key == "autoindex")
-			setAutoIndex(value);
-		else if (key == "client_body_temp_path")
-			setUploadDir(value);
+		}
+		else if (tokens[0] == "alias" || tokens[0] == "index" || tokens[0] == "autoindex" || tokens[0] == "client_body_temp_path")
+		{
+			if (tokens.size() != 2)
+			{
+				std::cerr << "Directive \"" << tokens[0] << "\" requires exactly one value" << std::endl;
+				exit(1);
+			}
+			if (tokens[0] == "alias")
+				setAlias(tokens[1]);
+			else if (tokens[0] == "index")
+				setIndex(tokens[1]);
+			else if (tokens[0] == "autoindex")
+				setAutoIndex(tokens[1]);
+			else if (tokens[0] == "client_body_temp_path")
+				setUploadDir(tokens[1]);
+		}
 		else
 		{
-			std::cout << "Unknown directive: \"" << key << "\" inside location block" << std::endl;
+			std::cerr << "Unknown directive: \"" << tokens[0] << "\" in location block" << std::endl;
 			exit(1);
 		}
 		it++;
