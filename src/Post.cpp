@@ -40,8 +40,7 @@ std::string Request::handlePlainText(std::string path)
 		throw ContentTooLargeException();
 	}
 	
-	std::string upload_path = route->getUploadDir() + "/default_file";
-	std::cout << "upload path: " << upload_path << std::endl;
+	std::string upload_path = normalizePath(route->getUploadDir() + "/default_file");
 	std::ofstream ofs(upload_path.c_str(), std::ios::binary);
 	if (!ofs.is_open())
 	{
@@ -63,6 +62,7 @@ std::string Request::handleMultiPart(std::string path)
 		file_name = "default_file";
 	std::string boundary = "--" + find_boundary(request_string);
 	std::string upload_path = route->getUploadDir() + "/" + file_name;
+	upload_path = normalizePath(upload_path);
 	std::ofstream ofs(upload_path.c_str(), std::ios::binary);
 
 	if (!ofs.is_open())
@@ -115,7 +115,6 @@ std::string Request::Handle_POST(std::string path, Route *route)
 	if (std::find(allowed_methods.begin(), allowed_methods.end(), "POST") == allowed_methods.end() && !allowed_methods.empty())
 		throw MethodNotAllowedException();
 
-	std::cout << "Content-Type: " << request_map["Content-Type"] << std::endl;
 	if (request_map["Content-Type"].find("text/html") != std::string::npos || request_map["Content-Type"].find("plain/text") != std::string::npos)
 		return handlePlainText(path);
 	else

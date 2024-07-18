@@ -9,6 +9,7 @@
 
 void Request::executeCGI(std::string path)
 {
+	std::cout << "path: " << path << std::endl;
 	char *const argv[] = {NULL};
 	char *const envp[] = {NULL};
 	int pipeFd[2];
@@ -30,12 +31,12 @@ void Request::executeCGI(std::string path)
 		dup2(pipeFd[1], 1);
 		close(pipeFd[1]);
 		
-		setenv("REQUEST_METHOD", request_map["Method"].c_str(), 1);
-		setenv("REQUEST_URI", request_map["Path"].c_str(), 1);
-		setenv("CONTENT_LENGTH", std::to_string(postData.size()).c_str(), 1);
-		setenv("SCRIPT_NAME", path.c_str(), 1);
-		setenv("CONTENT_LENGTH", std::to_string(postData.size()).c_str(), 1);
-		setenv("CONTENT_TYPE", "text/html", 1);
+		// setenv("REQUEST_METHOD", request_map["Method"].c_str(), 1);
+		// setenv("REQUEST_URI", request_map["Path"].c_str(), 1);
+		// setenv("CONTENT_LENGTH", std::to_string(postData.size()).c_str(), 1);
+		// setenv("SCRIPT_NAME", path.c_str(), 1);
+		// setenv("CONTENT_LENGTH", std::to_string(postData.size()).c_str(), 1);
+		// setenv("CONTENT_TYPE", "text/html", 1);
 
 		int postFd[2];
 		if (pipe(postFd) == -1)

@@ -307,7 +307,6 @@ std::string Request::Handle_GET(std::string path)
 
 std::string Request::createAutoIndex(const std::string &path)
 {
-	std::cout << "autoindex called" << std::endl;
 	std::stringstream autoIndex;
 	autoIndex << "<html>\n<head><title>Index of /</title></head>";
 	//get the directory
