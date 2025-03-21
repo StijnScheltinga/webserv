@@ -10,7 +10,7 @@ Key Features:
 
 By completing this project, students gain deep knowledge of networking, sockets, and HTTP protocols, preparing them for backend development, DevOps, and system-level programming. It’s one of the most complex and rewarding projects in the 42 curriculum!
 
-## usage
+## Usage
 
 Simply clone the project and run make in the project root.  
 Then run the server providing the example config file.
